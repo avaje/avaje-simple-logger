@@ -15,6 +15,7 @@
 
   <modules>
     <module>avaje-simple-logger</module>
+    <module>avaje-simple-dynamic-logger</module>
   </modules>
 
 </project>
