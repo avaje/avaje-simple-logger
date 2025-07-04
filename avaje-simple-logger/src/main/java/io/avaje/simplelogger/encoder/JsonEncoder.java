@@ -35,8 +35,8 @@ final class JsonEncoder {
     this.customFieldsMap = customFieldsMap;
     this.throwableConverter = throwableConverter;
     this.fieldExtra = this.customFieldsMap.entrySet().stream()
-            .mapToInt(e -> e.getKey().length() + e.getValue().length())
-            .sum();
+      .mapToInt(e -> e.getKey().length() + e.getValue().length())
+      .sum();
   }
 
   byte[] encode(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t) {

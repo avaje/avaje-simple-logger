@@ -1,8 +1,6 @@
 package io.avaje.simplelogger;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-class PropertiesLoaderTest  {
+class PropertiesLoaderTest {
 
 //    @Test
 //    void asd() {

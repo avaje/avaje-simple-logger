@@ -32,15 +32,6 @@ interface StackElementFilter {
   }
 
   /**
-   * Tests whether the specified {@link StackTraceElement} should be accepted when computing
-   * a stack hash.
-   *
-   * @param element The {@link StackTraceElement} to be tested
-   * @return {@code true} if and only if {@code element} should be accepted
-   */
-  boolean accept(StackTraceElement element);
-
-  /**
    * Creates a {@link StackElementFilter} that accepts any stack trace elements
    *
    * @return the filter
@@ -69,6 +60,15 @@ interface StackElementFilter {
   static StackElementFilter byPattern(final List<Pattern> excludes) {
     return builder().byPattern(excludes).build();
   }
+
+  /**
+   * Tests whether the specified {@link StackTraceElement} should be accepted when computing
+   * a stack hash.
+   *
+   * @param element The {@link StackTraceElement} to be tested
+   * @return {@code true} if and only if {@code element} should be accepted
+   */
+  boolean accept(StackTraceElement element);
 
   /**
    * Builder for common StackElementFilters.

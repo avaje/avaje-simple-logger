@@ -8,7 +8,8 @@ final class TimeZoneUtils {
 
   private static final String DEFAULT_TIMEZONE_KEYWORD = "[DEFAULT]";
 
-  private TimeZoneUtils() {}
+  private TimeZoneUtils() {
+  }
 
   /**
    * Parse a string into the corresponding {@link TimeZone} using the format described by {@link
@@ -20,7 +21,7 @@ final class TimeZoneUtils {
    * @param str the string to parse into a valid {@link TimeZone}.
    * @return the {@link TimeZone} corresponding to the input string
    * @throws IllegalArgumentException thrown when the string is not a valid TimeZone textual
-   *     representation.
+   *                                  representation.
    */
   static TimeZone parseTimeZone(String str) {
     if (str == null || str.isBlank() || DEFAULT_TIMEZONE_KEYWORD.equalsIgnoreCase(str)) {

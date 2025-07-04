@@ -50,11 +50,17 @@ final class ThrowableConverter {
   private static final String WRAPPED_BY = "Wrapped by: ";
 
   private final String lineSeparator = "\n"; // System.getProperty("line.separator");
-  /** Maximum number of stackTraceElements printed per throwable. */
+  /**
+   * Maximum number of stackTraceElements printed per throwable.
+   */
   private final int maxDepthPerThrowable = Integer.getInteger("avaje.logback.maxDepthPerThrowable", Integer.MAX_VALUE);
-  /** Maximum number of characters in the entire stacktrace. */
+  /**
+   * Maximum number of characters in the entire stacktrace.
+   */
   private final int maxLength = Integer.getInteger("avaje.logback.maxThrowableLength", 20_000);
-  /** Abbreviator used to shorten the classnames.*/
+  /**
+   * Abbreviator used to shorten the classnames.
+   */
   private final Abbreviator abbreviator = Abbreviator.create(100);
   private final StackElementFilter stackElementFilter = StackElementFilter.any();
   private final boolean rootCauseFirst = false;
@@ -95,10 +101,10 @@ final class ThrowableConverter {
       for (final Throwable suppressedThrowableProxy : suppressedThrowableProxies) {
         // stack hashes are not computed/inlined on suppressed errors
         appendRootCauseLast(
-            builder,
-            SUPPRESSED,
-            indent + SUPPRESSED_EXCEPTION_INDENT,
-            suppressedThrowableProxy);
+          builder,
+          SUPPRESSED,
+          indent + SUPPRESSED_EXCEPTION_INDENT,
+          suppressedThrowableProxy);
       }
     }
     appendRootCauseLast(builder, CAUSED_BY, indent, throwableProxy.getCause());
@@ -126,15 +132,17 @@ final class ThrowableConverter {
       for (final Throwable suppressedThrowableProxy : suppressedThrowableProxies) {
         // stack hashes are not computed/inlined on suppressed errors
         appendRootCauseFirst(
-            builder,
-            SUPPRESSED,
-            indent + SUPPRESSED_EXCEPTION_INDENT,
-            suppressedThrowableProxy);
+          builder,
+          SUPPRESSED,
+          indent + SUPPRESSED_EXCEPTION_INDENT,
+          suppressedThrowableProxy);
       }
     }
   }
 
-  /** Appends the frames of the throwable. */
+  /**
+   * Appends the frames of the throwable.
+   */
   private void appendStackTraceElements(StringBuilder builder, int indent, Throwable throwableProxy) {
     if (builder.length() > this.maxLength) {
       return;
@@ -201,16 +209,16 @@ final class ThrowableConverter {
 
       if (commonFrames > 0) {
         appendPlaceHolder(
-            builder,
-            indent,
-            stackTraceElements.length - appended - consecutiveExcluded,
-            "frames truncated (including " + commonFrames + " common frames)");
+          builder,
+          indent,
+          stackTraceElements.length - appended - consecutiveExcluded,
+          "frames truncated (including " + commonFrames + " common frames)");
       } else {
         appendPlaceHolder(
-            builder,
-            indent,
-            stackTraceElements.length - appended - consecutiveExcluded,
-            "frames truncated");
+          builder,
+          indent,
+          stackTraceElements.length - appended - consecutiveExcluded,
+          "frames truncated");
       }
     } else {
       if (consecutiveExcluded > 0) {
@@ -225,16 +233,18 @@ final class ThrowableConverter {
     }
   }
 
-  /** Appends a placeholder indicating that some frames were not written. */
+  /**
+   * Appends a placeholder indicating that some frames were not written.
+   */
   private void appendPlaceHolder(StringBuilder builder, int indent, int consecutiveExcluded, String message) {
     indent(builder, indent);
     builder
-        .append(ELLIPSIS)
-        .append(" ")
-        .append(consecutiveExcluded)
-        .append(" ")
-        .append(message)
-        .append(lineSeparator);
+      .append(ELLIPSIS)
+      .append(" ")
+      .append(consecutiveExcluded)
+      .append(" ")
+      .append(message)
+      .append(lineSeparator);
   }
 
   /**
@@ -247,7 +257,9 @@ final class ThrowableConverter {
     return stackElementFilter.accept(step);
   }
 
-  /** Appends a single stack trace element. */
+  /**
+   * Appends a single stack trace element.
+   */
   private void appendStackTraceElement(StringBuilder builder, int indent, StackTraceElement step, StackTraceElement previousStep) {
     if (builder.length() > this.maxLength) {
       return;
@@ -257,12 +269,12 @@ final class ThrowableConverter {
     final String fileName = step.getFileName();
     final int lineNumber = step.getLineNumber();
     builder
-        .append("at ")
-        .append(abbreviator.abbreviate(step.getClassName()))
-        .append(".")
-        .append(step.getMethodName())
-        .append("(")
-        .append(fileName == null ? "Unknown Source" : fileName);
+      .append("at ")
+      .append(abbreviator.abbreviate(step.getClassName()))
+      .append(".")
+      .append(step.getMethodName())
+      .append("(")
+      .append(fileName == null ? "Unknown Source" : fileName);
 
     if (lineNumber >= 0) {
       builder.append(":").append(lineNumber);
@@ -271,7 +283,9 @@ final class ThrowableConverter {
     builder.append(lineSeparator);
   }
 
-  /** Appends the first line containing the prefix and throwable message */
+  /**
+   * Appends the first line containing the prefix and throwable message
+   */
   private void appendFirstLine(StringBuilder builder, String prefix, int indent, Throwable throwableProxy) {
     if (builder.length() > this.maxLength) {
       return;
@@ -281,14 +295,14 @@ final class ThrowableConverter {
       builder.append(prefix);
     }
     builder
-        .append(abbreviator.abbreviate(throwableProxy.getClass().getName())) //throwableProxy.getClassName()))
-        .append(": ")
-        .append(throwableProxy.getMessage())
-        .append(lineSeparator);
+      .append(abbreviator.abbreviate(throwableProxy.getClass().getName())) //throwableProxy.getClassName()))
+      .append(": ")
+      .append(throwableProxy.getMessage())
+      .append(lineSeparator);
   }
 
   private void indent(StringBuilder builder, int indent) {
-      builder.append(" ".repeat(Math.max(0, indent)));
+    builder.append(" ".repeat(Math.max(0, indent)));
   }
 
 //  /**

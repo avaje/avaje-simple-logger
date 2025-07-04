@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2004-2011 QOS.ch
  * All rights reserved.
- *
+ * <p>
  * Permission is hereby granted, free  of charge, to any person obtaining
  * a  copy  of this  software  and  associated  documentation files  (the
  * "Software"), to  deal in  the Software without  restriction, including
@@ -9,10 +9,10 @@
  * distribute,  sublicense, and/or sell  copies of  the Software,  and to
  * permit persons to whom the Software  is furnished to do so, subject to
  * the following conditions:
- *
+ * <p>
  * The  above  copyright  notice  and  this permission  notice  shall  be
  * included in all copies or substantial portions of the Software.
- *
+ * <p>
  * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
  * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
  * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
@@ -20,12 +20,8 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
  * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
  */
 package io.avaje.simplelogger;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +29,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.LoggerFactoryFriend;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,91 +48,91 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class DetectLoggerNameMismatchTest {
 
-    private static final String MISMATCH_STRING = "Detected logger name mismatch";
+  private static final String MISMATCH_STRING = "Detected logger name mismatch";
 
-    static String NAME_OF_THIS_CLASS = DetectLoggerNameMismatchTest.class.getName();
+  static String NAME_OF_THIS_CLASS = DetectLoggerNameMismatchTest.class.getName();
 
-    private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    private final PrintStream oldErr = System.err;
+  private final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+  private final PrintStream oldErr = System.err;
 
-    @BeforeEach
-    public void setUp() {
-        System.setErr(new PrintStream(byteArrayOutputStream));
-    }
+  private static void setTrialEnabled(boolean enabled) {
+    // The system property is read into a static variable at initialization time
+    // so we cannot just reset the system property to test this feature.
+    // Therefore we set the variable directly.
+    LoggerFactoryFriend.setDetectLoggerNameMismatch(enabled);
+  }
 
-    @AfterEach
-    public void tearDown() {
-        setTrialEnabled(false);
-        System.setErr(oldErr);
-    }
+  @BeforeEach
+  public void setUp() {
+    System.setErr(new PrintStream(byteArrayOutputStream));
+  }
 
-    /*
-     * Pass in the wrong class to the Logger with the check disabled, and make sure there are no errors.
-     */
-    @Test
-    public void testNoTriggerWithoutProperty() {
-        setTrialEnabled(false);
-        Logger logger = LoggerFactory.getLogger(String.class);
-        assertEquals("java.lang.String", logger.getName());
-        assertMismatchDetected(false);
-    }
+  @AfterEach
+  public void tearDown() {
+    setTrialEnabled(false);
+    System.setErr(oldErr);
+  }
 
-    /*
-     * Pass in the wrong class to the Logger with the check enabled, and make sure there ARE errors.
-     */
-    @Test
-    public void testTriggerWithProperty() {
-        setTrialEnabled(true);
-        LoggerFactory.getLogger(String.class);
-        assertMismatchDetected(true);
-    }
+  /*
+   * Pass in the wrong class to the Logger with the check disabled, and make sure there are no errors.
+   */
+  @Test
+  public void testNoTriggerWithoutProperty() {
+    setTrialEnabled(false);
+    Logger logger = LoggerFactory.getLogger(String.class);
+    assertEquals("java.lang.String", logger.getName());
+    assertMismatchDetected(false);
+  }
 
-    /*
-     * Checks the whole error message to ensure all the names show up correctly.
-     */
-    @Test
-    public void testTriggerWholeMessage() {
-        setTrialEnabled(true);
-        LoggerFactory.getLogger(String.class);
-        boolean success = String.valueOf(byteArrayOutputStream)
-                        .contains("Detected logger name mismatch. Given name: \"java.lang.String\"; " + "computed name: \"" + NAME_OF_THIS_CLASS + "\".");
-        assertTrue(success);
-    }
+  /*
+   * Pass in the wrong class to the Logger with the check enabled, and make sure there ARE errors.
+   */
+  @Test
+  public void testTriggerWithProperty() {
+    setTrialEnabled(true);
+    LoggerFactory.getLogger(String.class);
+    assertMismatchDetected(true);
+  }
 
-    /*
-     * Checks that there are no errors with the check enabled if the class matches.
-     */
-    @Test
-    public void testPassIfMatch() {
-        setTrialEnabled(true);
-        Logger logger = LoggerFactory.getLogger(DetectLoggerNameMismatchTest.class);
-        assertEquals(DetectLoggerNameMismatchTest.class.getName(), logger.getName());
-        assertMismatchDetected(false);
-    }
+  /*
+   * Checks the whole error message to ensure all the names show up correctly.
+   */
+  @Test
+  public void testTriggerWholeMessage() {
+    setTrialEnabled(true);
+    LoggerFactory.getLogger(String.class);
+    boolean success = String.valueOf(byteArrayOutputStream)
+      .contains("Detected logger name mismatch. Given name: \"java.lang.String\"; " + "computed name: \"" + NAME_OF_THIS_CLASS + "\".");
+    assertTrue(success);
+  }
 
-    private void assertMismatchDetected(boolean mismatchDetected) {
-        assertEquals(mismatchDetected, String.valueOf(byteArrayOutputStream).contains(MISMATCH_STRING));
-    }
+  /*
+   * Checks that there are no errors with the check enabled if the class matches.
+   */
+  @Test
+  public void testPassIfMatch() {
+    setTrialEnabled(true);
+    Logger logger = LoggerFactory.getLogger(DetectLoggerNameMismatchTest.class);
+    assertEquals(DetectLoggerNameMismatchTest.class.getName(), logger.getName());
+    assertMismatchDetected(false);
+  }
 
-    @Test
-    public void verifyLoggerDefinedInBaseWithOverridenGetClassMethod() {
-        setTrialEnabled(true);
-        Square square = new Square();
-        assertEquals(Square.class.getName(), square.logger.getName());
-        assertMismatchDetected(false);
-    }
+  private void assertMismatchDetected(boolean mismatchDetected) {
+    assertEquals(mismatchDetected, String.valueOf(byteArrayOutputStream).contains(MISMATCH_STRING));
+  }
 
-    private static void setTrialEnabled(boolean enabled) {
-        // The system property is read into a static variable at initialization time
-        // so we cannot just reset the system property to test this feature.
-        // Therefore we set the variable directly.
-        LoggerFactoryFriend.setDetectLoggerNameMismatch(enabled);
-    }
+  @Test
+  public void verifyLoggerDefinedInBaseWithOverridenGetClassMethod() {
+    setTrialEnabled(true);
+    Square square = new Square();
+    assertEquals(Square.class.getName(), square.logger.getName());
+    assertMismatchDetected(false);
+  }
 }
 
 // Used for testing that inheritance is ignored by the checker.
 class ShapeBase {
-    public Logger logger = LoggerFactory.getLogger(getClass());
+  public Logger logger = LoggerFactory.getLogger(getClass());
 }
 
 class Square extends ShapeBase {

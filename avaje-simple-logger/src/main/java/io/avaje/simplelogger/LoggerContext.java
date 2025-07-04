@@ -7,14 +7,14 @@ import java.util.Map;
 
 public interface LoggerContext extends ILoggerFactory {
 
-    LoggerContext CONTEXT = Bootstrap.init();
+  LoggerContext CONTEXT = Bootstrap.init();
 
-    static LoggerContext get() {
-        return CONTEXT;
-    }
+  static LoggerContext get() {
+    return CONTEXT;
+  }
 
-    /**
-     * Apply a set of name log level pairs and update log levels for all impacted loggers.
-     */
-    void putAll(Map<String,String> nameLevels);
+  /**
+   * Apply a set of name log level pairs and update log levels for all impacted loggers.
+   */
+  void putAll(Map<String, String> nameLevels);
 }

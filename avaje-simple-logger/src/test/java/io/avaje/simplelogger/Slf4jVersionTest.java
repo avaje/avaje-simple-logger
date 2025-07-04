@@ -8,12 +8,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class Slf4jVersionTest {
 
-    @Disabled
-    @Test
-    void slf4jVersionTest() {
-        String version = Slf4jEnvUtil.slf4jVersion();
-        assertThat(version).isNotNull();
-        assertThat(version).startsWith("2");
-    }
+  @Disabled
+  @Test
+  void slf4jVersionTest() {
+    String version = Slf4jEnvUtil.slf4jVersion();
+    assertThat(version).isNotNull();
+    assertThat(version).startsWith("2");
+  }
 
 }
