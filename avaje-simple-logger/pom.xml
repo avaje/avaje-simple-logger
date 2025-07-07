@@ -13,7 +13,7 @@
   <version>0.1</version>
   <groupId>io.avaje</groupId>
   <artifactId>avaje-simple-logger</artifactId>
-  <name>avaje-simple-dynamic-logger</name>
+  <name>avaje-simple-logger</name>
   <description>Supports dynamically changing log levels via avaje config</description>
 
   <properties>

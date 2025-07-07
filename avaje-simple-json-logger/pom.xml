@@ -13,7 +13,7 @@
   <artifactId>avaje-simple-json-logger</artifactId>
   <version>0.1</version>
 
-  <name>avaje-simple-logger</name>
+  <name>avaje-simple-json-logger</name>
   <description>Simple json logger for SLF4J</description>
 
   <properties>
