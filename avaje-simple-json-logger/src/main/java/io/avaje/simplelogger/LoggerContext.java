@@ -5,10 +5,19 @@ import org.slf4j.ILoggerFactory;
 
 import java.util.Map;
 
+/**
+ * Extends ILoggerFactory with ability to set log levels.
+ */
 public interface LoggerContext extends ILoggerFactory {
 
+  /**
+   * The global LoggerContext.
+   */
   LoggerContext CONTEXT = Bootstrap.init();
 
+  /**
+   * Return the LoggerContext.
+   */
   static LoggerContext get() {
     return CONTEXT;
   }

@@ -6,16 +6,19 @@ import org.slf4j.spi.LocationAwareLogger;
 
 import java.io.PrintStream;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 final class PlainLogWriter implements LogWriter {
 
   private static final char SP = ' ';
 
   private final PrintStream targetStream;
+  private final DateTimeFormatter formatter;
   private final boolean showThreadName;
 
-  PlainLogWriter(PrintStream targetStream, boolean showThreadName) {
+  PlainLogWriter(PrintStream targetStream, DateTimeFormatter formatter, boolean showThreadName) {
     this.targetStream = targetStream;
+    this.formatter = formatter;
     this.showThreadName = showThreadName;
   }
 
@@ -56,7 +59,7 @@ final class PlainLogWriter implements LogWriter {
   }
 
   private String formattedTimestamp() {
-    return OffsetDateTime.now().toString();
+    return formatter.format(OffsetDateTime.now());
   }
 
   private String renderLevel(int levelInt) {

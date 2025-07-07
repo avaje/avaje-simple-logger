@@ -5,13 +5,17 @@ import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
 
+import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
+
 @Disabled
 public class AcceptanceTest extends LoggerTestSuite {
 
   @Override
   public Logger createLogger(ListAppendingOutputStream outputStream, Level level) {
+    final DateTimeFormatter formatter = TimeZoneUtils.formatter(null, TimeZone.getDefault().toZoneId());
     int logLevel = SimpleLoggerFactory.stringToLevel(level.toString());
-    return new SimpleLogger(new PlainLogWriter(System.out, true), "TestSuiteLogger", "TestSuiteLogger", logLevel);
+    return new SimpleLogger(new PlainLogWriter(System.out, formatter, true), "TestSuiteLogger", "TestSuiteLogger", logLevel);
   }
 
   @Override

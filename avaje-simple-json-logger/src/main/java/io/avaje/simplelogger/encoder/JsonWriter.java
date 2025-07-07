@@ -1,6 +1,7 @@
 package io.avaje.simplelogger.encoder;
 
 import org.slf4j.event.Level;
+import org.slf4j.helpers.Reporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -20,8 +21,7 @@ final class JsonWriter implements LogWriter {
     try {
       out.write(encoder.encode(loggerName, level, messagePattern, arguments, t));
     } catch (IOException e) {
-      System.err.println("Failed to write to log " + e);
-      e.printStackTrace(System.err);
+      Reporter.error("Failed to write to log", e);
     }
   }
 }

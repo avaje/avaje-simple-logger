@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 
+/**
+ * Bootstrap the simple logger.
+ */
 public final class Bootstrap {
 
   public static LoggerContext init() {
@@ -41,23 +44,26 @@ public final class Bootstrap {
   }
 
   private static LogWriter createWriter(Properties properties, String writerType) {
-    PrintStream target = System.out;
-    String timestampPattern = Eval.eval(properties.getProperty("logger.timestampPattern"));
+    final PrintStream target = System.out;
+    final TimeZone timeZone = TimeZoneUtils.parseTimeZone(property(properties, "logger.timezone"));
+    final String timestampPattern = property(properties, "logger.timestampPattern");
     if ("plain".equalsIgnoreCase(writerType)) {
-      final TimeZone tz = TimeZone.getDefault();
-      final DateTimeFormatter formatter = TimeZoneUtils.formatter(timestampPattern, tz.toZoneId());
-
-      boolean showThreadName = Boolean.parseBoolean(Eval.eval(properties.getProperty("logger.showThreadName")));
-
-      return new PlainLogWriter(target, showThreadName);
+      final DateTimeFormatter formatter = TimeZoneUtils.formatter(timestampPattern, timeZone.toZoneId());
+      final boolean showThreadName = Boolean.parseBoolean(Eval.eval(properties.getProperty("logger.showThreadName")));
+      return new PlainLogWriter(target, formatter, showThreadName);
     }
     var jsonEncoder = new JsonEncoderBuilder()
-      .component(Eval.eval(properties.getProperty("logger.component")))
-      .environment(Eval.eval(properties.getProperty("logger.environment")))
-      .customFields(Eval.eval(properties.getProperty("logger.customFields")))
+      .component(property(properties, "logger.component"))
+      .environment(property(properties,"logger.environment"))
+      .customFields(property(properties, "logger.customFields"))
       .timestampPattern(timestampPattern)
+      .timeZone(timeZone)
       .build();
     return new JsonWriter(jsonEncoder, target);
+  }
+
+  private static String property(Properties properties, String key) {
+    return Eval.eval(properties.getProperty(key));
   }
 
   private static Properties loadProperties() {

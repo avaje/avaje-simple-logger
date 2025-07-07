@@ -7,6 +7,9 @@ import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
+/**
+ * Provides the simple logger as SLF4J service provider.
+ */
 public final class SimpleLoggerProvider implements SLF4JServiceProvider {
 
   /**

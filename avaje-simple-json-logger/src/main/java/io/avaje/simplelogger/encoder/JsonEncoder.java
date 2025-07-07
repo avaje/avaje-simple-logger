@@ -43,13 +43,12 @@ final class JsonEncoder {
     final String stackTraceBody = t == null ? "" : throwableConverter.convert(t);
     final int extra = stackTraceBody.isEmpty() ? 0 : 20 + stackTraceBody.length();
 
-    final Instant now = Instant.now();
-    final var threadName = Thread.currentThread().getName();
     String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
     if (message == null) {
       message = "";
     }
 
+    final var threadName = Thread.currentThread().getName();
     final int bufferSize = 100 + extra + fieldExtra + message.length() + threadName.length() + loggerName.length();
     final var outputStream = new ByteArrayOutputStream(bufferSize);
 
@@ -64,7 +63,7 @@ final class JsonEncoder {
         writer.value(environment);
       }
       writer.name(2);
-      writer.value(formatter.format(now));
+      writer.value(formatter.format(Instant.now()));
       writer.name(3);
       writer.value(level.toString());
       writer.name(4);//
