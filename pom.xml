@@ -14,8 +14,8 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>avaje-simple-json-logger</module>
     <module>avaje-simple-logger</module>
-    <module>avaje-simple-dynamic-logger</module>
   </modules>
 
 </project>

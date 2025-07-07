@@ -1,10 +1,11 @@
-import io.avaje.simplelogger.SimpleLoggerProvider;
+import io.avaje.simplelogger.dynamic.DynamicLogLevels;
 
-module io.avaje.simplelogger {
-  exports io.avaje.simplelogger;
+module io.avaje.simplelogger.dynamic {
 
-  requires transitive org.slf4j;
-  requires transitive io.avaje.json;
-  provides org.slf4j.spi.SLF4JServiceProvider with SimpleLoggerProvider;
-  opens io.avaje.simplelogger to org.slf4j;
+  exports io.avaje.simplelogger.dynamic;
+
+  requires transitive io.avaje.simplelogger;
+  requires transitive io.avaje.config;
+
+  provides io.avaje.config.ConfigExtension with DynamicLogLevels;
 }
