@@ -7,10 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Bootstrap the simple logger.
@@ -28,9 +25,12 @@ public final class Bootstrap {
     String nameLength = properties.getProperty("logger.nameTargetLength", "full");
     Abbreviator abbreviator = Abbreviator.create(nameLength);
 
-    var factory = new SimpleLoggerFactory(logWriter, abbreviator, defaultLevel);
+    final Map<String, String> nameLevels = initialNameLevels(properties);
+    return new SimpleLoggerFactory(logWriter, abbreviator, defaultLevel, nameLevels);
+  }
 
-    Map<String, String> nameLevels = new LinkedHashMap<>();
+  private static Map<String, String> initialNameLevels(Properties properties) {
+    Map<String, String> nameLevels = new HashMap<>();
     for (String key : properties.stringPropertyNames()) {
       if (key.startsWith("log.level.")) {
         String val = properties.getProperty(key);
@@ -39,8 +39,7 @@ public final class Bootstrap {
         }
       }
     }
-    factory.putAll(nameLevels);
-    return factory;
+    return nameLevels;
   }
 
   private static LogWriter createWriter(Properties properties, String writerType) {

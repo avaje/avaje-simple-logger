@@ -21,10 +21,11 @@ final class SimpleLoggerFactory implements LoggerContext {
   private final Abbreviator abbreviator;
   private final int defaultLogLevel;
 
-  SimpleLoggerFactory(LogWriter logWriter, Abbreviator abbreviator, int defaultLogLevel) {
+  SimpleLoggerFactory(LogWriter logWriter, Abbreviator abbreviator, int defaultLogLevel, Map<String, String> nameLevels) {
     this.logWriter = logWriter;
     this.abbreviator = abbreviator;
     this.defaultLogLevel = defaultLogLevel;
+    nameLevels.forEach(this::putLevel);
   }
 
   static int stringToLevel(String levelStr) {
