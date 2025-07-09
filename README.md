@@ -1,7 +1,7 @@
 # avaje-simple-logger
 
 A SLF4J Logger built primarily for use with GraalVM Native image that writes JSON structured logs to `System.out`. 
-It is designed to be used by applications that will be run in K8s or Lambda. 
+It is designed to be used by applications that will be run in **K8s** or **Lambda**. 
 
 
 ## Background
@@ -26,9 +26,6 @@ and turned into a SLF4J Logger, thus removing the dependency on Logback and its 
 
 Configure via adding a `src/main/resources/avaje-logger.properties`
 ```properties
-## for testing we desire plain format than json format
-logger.writer=plain
-
 ## specify the default log level to use for testing
 logger.defaultLogLevel=warn
 
@@ -45,6 +42,9 @@ We also might want to define some test specific log levels.
 Add test specific configuration via `src/test/resources/avaje-logger-test.properties`
 
 ```properties
+## for testing we desire plain format than json format
+logger.writer=plain
+
 ## default log level to use when running tests
 logger.defaultLogLevel=INFO
 
@@ -57,10 +57,8 @@ log.level.io.ebean.DDL=TRACE
 
 ## Configure
 
-### avaje-logger.properties & avaje-logger-test.properties
-
-Configure the logger via main resource avaje-logger.properties 
-and test resource avaje-logger-test.properties
+Configure the logger via main resource `avaje-logger.properties` 
+and test resource `avaje-logger-test.properties`
 
 
 ```properties
