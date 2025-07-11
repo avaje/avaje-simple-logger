@@ -44,11 +44,21 @@ final class TimeZoneUtils {
     return tz;
   }
 
-  static DateTimeFormatter formatter(String pattern, ZoneId zoneId) {
-    if (pattern == null) {
+  static DateTimeFormatter jsonFormatter(String timestampPattern, ZoneId zoneId) {
+    if (timestampPattern == null) {
       return DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(zoneId);
     }
+    return formatter(timestampPattern, zoneId);
+  }
 
+  static DateTimeFormatter plainFormatter(String timestampPattern, ZoneId zoneId) {
+    if (timestampPattern == null) {
+      return DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss.SSS");
+    }
+    return formatter(timestampPattern, zoneId);
+  }
+
+  private static DateTimeFormatter formatter(String pattern, ZoneId zoneId) {
     try {
       var time = TimePattern.valueOf(pattern.toUpperCase());
       switch (time) {

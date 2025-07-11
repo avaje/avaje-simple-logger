@@ -13,7 +13,7 @@ public class AcceptanceTest extends LoggerTestSuite {
 
   @Override
   public Logger createLogger(ListAppendingOutputStream outputStream, Level level) {
-    final DateTimeFormatter formatter = TimeZoneUtils.formatter(null, TimeZone.getDefault().toZoneId());
+    final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(null, TimeZone.getDefault().toZoneId());
     int logLevel = SimpleLoggerFactory.stringToLevel(level.toString());
     return new SimpleLogger(new PlainLogWriter(System.out, formatter, true), "TestSuiteLogger", "TestSuiteLogger", logLevel);
   }
