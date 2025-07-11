@@ -16,8 +16,7 @@ public final class Bootstrap {
 
   public static LoggerContext init() {
     Properties properties = loadProperties();
-    String writerType = properties.getProperty("logger.writer", "json");
-    LogWriter logWriter = createWriter(properties, writerType);
+    LogWriter logWriter = createWriter(properties, logFormat(properties));
 
     String info = properties.getProperty("logger.defaultLogLevel", "info");
     int defaultLevel = SimpleLoggerFactory.stringToLevel(info);
@@ -27,6 +26,10 @@ public final class Bootstrap {
 
     final Map<String, String> nameLevels = initialNameLevels(properties);
     return new SimpleLoggerFactory(logWriter, abbreviator, defaultLevel, nameLevels);
+  }
+
+  private static String logFormat(Properties properties) {
+    return properties.getProperty("logger.format", "json");
   }
 
   private static Map<String, String> initialNameLevels(Properties properties) {
@@ -48,7 +51,7 @@ public final class Bootstrap {
     final String timestampPattern = property(properties, "logger.timestampPattern");
     if ("plain".equalsIgnoreCase(writerType)) {
       final DateTimeFormatter formatter = TimeZoneUtils.formatter(timestampPattern, timeZone.toZoneId());
-      final boolean showThreadName = Boolean.parseBoolean(Eval.eval(properties.getProperty("logger.showThreadName")));
+      final boolean showThreadName = propertyShowThreadName(properties);
       return new PlainLogWriter(target, formatter, showThreadName);
     }
     var jsonEncoder = new JsonEncoderBuilder()
@@ -63,6 +66,10 @@ public final class Bootstrap {
 
   private static String property(Properties properties, String key) {
     return Eval.eval(properties.getProperty(key));
+  }
+
+  private static boolean propertyShowThreadName(Properties properties) {
+    return Boolean.parseBoolean(Eval.eval(properties.getProperty("logger.showThreadName", "true")));
   }
 
   private static Properties loadProperties() {

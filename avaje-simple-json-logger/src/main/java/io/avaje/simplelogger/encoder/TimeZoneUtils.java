@@ -46,7 +46,7 @@ final class TimeZoneUtils {
 
   static DateTimeFormatter formatter(String pattern, ZoneId zoneId) {
     if (pattern == null) {
-      return DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(zoneId);
+      return DateTimeFormatter.ofPattern("uuuu-MM-d HH:mm:ss.SSS");
     }
 
     try {
