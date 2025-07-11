@@ -1,12 +1,12 @@
 # avaje-simple-logger
 
-A SLF4J Logger built primarily for use with GraalVM Native image that writes JSON structured logs to `System.out`. 
-It is designed to be used by applications that will be run in **K8s** or **Lambda**. 
+A SLF4J Logger built primarily for use with GraalVM Native image that writes JSON structured logs to `System.out`.
+It is designed to be used by applications that will be run in **K8s** or **Lambda**.
 
 
 ## Background
 
-This logger has been created from the Logback JSON Encoder from [avaje-logback-encoder](https://github.com/avaje/avaje-logback-encoder), 
+This logger has been created from the Logback JSON Encoder from [avaje-logback-encoder](https://github.com/avaje/avaje-logback-encoder),
 and turned into a SLF4J Logger, thus removing the dependency on Logback and its associated XML configuration.
 
 
@@ -18,7 +18,7 @@ and turned into a SLF4J Logger, thus removing the dependency on Logback and its 
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-logger</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
   </dependency>
 ```
 
@@ -36,14 +36,14 @@ log.level.io.avaje=INFO
 
 #### Step 3: `src/test/resources/avaje-logger-test.properties`
 
-For testing, we might desire to log in a plain format rather than JSON format. 
+For testing, we might desire to log in a plain format rather than JSON format.
 We also might want to define some test specific log levels.
 
 Add test specific configuration via `src/test/resources/avaje-logger-test.properties`
 
 ```properties
 ## for testing we desire plain format than json format
-logger.writer=plain
+logger.format=plain
 
 ## default log level to use when running tests
 logger.defaultLogLevel=INFO
@@ -57,7 +57,7 @@ log.level.io.ebean.DDL=TRACE
 
 ## Configure
 
-Configure the logger via main resource `avaje-logger.properties` 
+Configure the logger via main resource `avaje-logger.properties`
 and test resource `avaje-logger-test.properties`
 
 
@@ -66,8 +66,8 @@ and test resource `avaje-logger-test.properties`
 logger.defaultLogLevel=warn
 
 ## specify to log as `json` or `plain` format (defaults to json)
-logger.writer=json
-logger.writer=plain
+#logger.format=json
+logger.format=plain
 
 ## specify if the logger name is abbreviated. Values:
 ## - full - use the full logger name
@@ -95,7 +95,7 @@ logger.timestampPattern=ISO_OFFSET_DATE_TIME
 avaje-simple-logger automatically registers with avaje-config such that any configuration changes that
 start with `log.level.` are logging level configuration changes, and these are applied.
 
-avaje-config supports plugins like [AWS AppConfig](https://avaje.io/config/#aws-appconfig), where 
+avaje-config supports plugins like [AWS AppConfig](https://avaje.io/config/#aws-appconfig), where
 configuration changes can be dynamically made to the application. For example, `log.level.` changes
 can be dynamically made this way.
 
@@ -109,7 +109,7 @@ This excludes the avaje-config dependency.
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-json-logger</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
   </dependency>
 ```
 
@@ -122,4 +122,4 @@ nameLevels.put("com.foo.bar", "info");
 ...
 LoggerContext.get().putAll(nameLevels);
 ```
- 
+
