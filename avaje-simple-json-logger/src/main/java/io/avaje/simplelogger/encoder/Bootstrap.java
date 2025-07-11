@@ -50,7 +50,7 @@ public final class Bootstrap {
     final TimeZone timeZone = TimeZoneUtils.parseTimeZone(property(properties, "logger.timezone"));
     final String timestampPattern = property(properties, "logger.timestampPattern");
     if ("plain".equalsIgnoreCase(writerType)) {
-      final DateTimeFormatter formatter = TimeZoneUtils.formatter(timestampPattern, timeZone.toZoneId());
+      final DateTimeFormatter formatter = TimeZoneUtils.plainFormatter(timestampPattern, timeZone.toZoneId());
       final boolean showThreadName = propertyShowThreadName(properties);
       return new PlainLogWriter(target, formatter, showThreadName);
     }

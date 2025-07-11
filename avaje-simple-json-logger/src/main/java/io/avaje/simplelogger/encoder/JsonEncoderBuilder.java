@@ -96,8 +96,7 @@ final class JsonEncoderBuilder {
     if (stackHasher == null) {
       stackHasher = new StackHasher(StackElementFilter.builder().allFilters().build());
     }
-
-    final DateTimeFormatter formatter = TimeZoneUtils.formatter(timestampPattern, timeZone.toZoneId());
+    final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
     return new JsonEncoder(json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
   }
 

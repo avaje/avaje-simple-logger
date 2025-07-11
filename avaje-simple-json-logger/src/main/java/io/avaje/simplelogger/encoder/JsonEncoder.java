@@ -7,7 +7,7 @@ import org.slf4j.event.Level;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.io.ByteArrayOutputStream;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
@@ -63,10 +63,10 @@ final class JsonEncoder {
         writer.value(environment);
       }
       writer.name(2);
-      writer.value(formatter.format(Instant.now()));
+      writer.value(formatter.format(OffsetDateTime.now()));
       writer.name(3);
       writer.value(level.toString());
-      writer.name(4);//
+      writer.name(4);
       writer.value(loggerName);
       writer.name(5);
       writer.value(message);
