@@ -9,9 +9,9 @@
   </parent>
 
   <groupId>io.avaje</groupId>
-  <artifactId>avaje-simple-logger-reactor</artifactId>
-  <name>avaje-simple-logger-reactor</name>
-  <version>0.1</version>
+  <artifactId>avaje-simple-logger-parent</artifactId>
+  <name>avaje-simple-logger-parent</name>
+  <version>0.2</version>
   <packaging>pom</packaging>
 
   <modules>

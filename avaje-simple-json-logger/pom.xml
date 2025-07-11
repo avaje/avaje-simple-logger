@@ -4,14 +4,12 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.avaje</groupId>
-    <artifactId>java11-oss</artifactId>
-    <version>5.1</version>
+    <groupId>io.avaje</groupId>
+    <artifactId>avaje-simple-logger-parent</artifactId>
+    <version>0.2</version>
   </parent>
 
-  <groupId>io.avaje</groupId>
   <artifactId>avaje-simple-json-logger</artifactId>
-  <version>0.1</version>
 
   <name>avaje-simple-json-logger</name>
   <description>Simple json logger for SLF4J</description>
