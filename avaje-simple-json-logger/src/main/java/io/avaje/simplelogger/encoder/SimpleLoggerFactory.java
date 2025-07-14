@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.spi.LocationAwareLogger;
 
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -46,16 +47,40 @@ final class SimpleLoggerFactory implements LoggerContext {
     return LocationAwareLogger.INFO_INT;
   }
 
+  static String level(int level) {
+    switch (level) {
+      case LocationAwareLogger.TRACE_INT:
+        return "trace";
+      case LocationAwareLogger.DEBUG_INT:
+        return "debug";
+      case LocationAwareLogger.INFO_INT:
+        return "info";
+      case LocationAwareLogger.WARN_INT:
+        return "warn";
+      case LocationAwareLogger.ERROR_INT:
+        return "error";
+      case LOG_LEVEL_OFF:
+        return "off";
+      default:
+        return "Level" + level;
+    }
+  }
+
   @Override
-  public void putAll(Map<String, String> nameLevels) {
+  public Map<String, String> putAll(Map<String, String> nameLevels) {
     nameLevels.forEach(this::putLevel);
 
+    final Map<String, String> changed = new TreeMap<>();
     for (Map.Entry<String, SimpleLogger> entry : loggerMap.entrySet()) {
       final String key = entry.getKey();
       if (adjustedKey(key, nameLevels)) {
-        entry.getValue().setNewLevel(level(key));
+        int newLevel = level(key);
+        if (entry.getValue().setNewLevel(newLevel)) {
+          changed.put(key, level(newLevel));
+        }
       }
     }
+    return changed;
   }
 
   private boolean adjustedKey(String key, Map<String, String> nameLevels) {

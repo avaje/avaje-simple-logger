@@ -19,9 +19,11 @@ final class SimpleLogger extends LegacyAbstractLogger {
     this.level = level;
   }
 
-  void setNewLevel(int newLevel) {
+  boolean setNewLevel(int newLevel) {
     // atomic assignment
-    this.level = newLevel;
+    final boolean changed = level != newLevel;
+    level = newLevel;
+    return changed;
   }
 
   @Override

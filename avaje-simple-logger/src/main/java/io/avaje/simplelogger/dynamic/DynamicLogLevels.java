@@ -4,6 +4,8 @@ import io.avaje.config.Configuration;
 import io.avaje.config.ConfigurationPlugin;
 import io.avaje.config.ModificationEvent;
 import io.avaje.simplelogger.LoggerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +14,8 @@ import java.util.Map;
  * Using avaje config as source of log levels including dynamic log level adjustment.
  */
 public final class DynamicLogLevels implements ConfigurationPlugin {
+
+  private static final Logger log = LoggerFactory.getLogger("io.avaje.simplelogger");
 
   private static String trimKey(String key) {
     return key.substring(10);
@@ -24,11 +28,14 @@ public final class DynamicLogLevels implements ConfigurationPlugin {
     for (String key : config.keys()) {
       String rawLevel = config.getNullable(key);
       if (rawLevel != null) {
-        nameLevels.put(trimKey(key), rawLevel);
+        nameLevels.put(key, rawLevel);
       }
     }
     if (!nameLevels.isEmpty()) {
-      LoggerContext.get().putAll(nameLevels);
+      var changed = LoggerContext.get().putAll(nameLevels);
+      log.debug("apply log levels:{} changed loggers:{}", nameLevels, changed);
+    } else {
+      log.debug("dynamic log levels enabled");
     }
 
     configuration.onChange(this::onChangeAny);
@@ -47,7 +54,8 @@ public final class DynamicLogLevels implements ConfigurationPlugin {
       });
 
     if (!nameLevels.isEmpty()) {
-      LoggerContext.get().putAll(nameLevels);
+      var changed = LoggerContext.get().putAll(nameLevels);
+      log.debug("apply log levels:{} changed loggers:{}", nameLevels, changed);
     }
   }
 
