@@ -24,6 +24,8 @@ public interface LoggerContext extends ILoggerFactory {
 
   /**
    * Apply a set of name log level pairs and update log levels for all impacted loggers.
+   *
+   * @return Map of changed loggers and their new levels.
    */
-  void putAll(Map<String, String> nameLevels);
+  Map<String, String> putAll(Map<String, String> nameLevels);
 }
