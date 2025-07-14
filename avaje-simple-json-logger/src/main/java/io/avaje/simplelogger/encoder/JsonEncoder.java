@@ -35,7 +35,7 @@ final class JsonEncoder {
     this.customFieldsMap = customFieldsMap;
     this.throwableConverter = throwableConverter;
     this.fieldExtra = this.customFieldsMap.entrySet().stream()
-      .mapToInt(e -> e.getKey().length() + e.getValue().length())
+      .mapToInt(e -> e.getKey().length() + e.getValue().length() + 6)
       .sum();
   }
 
