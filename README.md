@@ -89,6 +89,60 @@ logger.timestampPattern=ISO_OFFSET_DATE_TIME
 
 ```
 
+## Structured JSON - logger.format=json
+
+By default, the log format is JSON. Example:
+
+```json
+{
+  "component":"my-application",
+  "env":"dev",
+  "timestamp":"2025-07-14T13:44:44.230959+12:00",
+  "level":"TRACE",
+  "logger":"io.avaje.config",
+  "message":"load from [resource:application-test.properties]",
+  "thread":"main"
+}
+```
+
+#### component
+
+A `component` key value is added if:
+- There is a `logger.component` property set in `avaje-logger.properties`
+- There is a `COMPONENT` environment variable set
+- K8s is detected, it will be derived from the `HOSTNAME` environment variable
+
+This key value is expected to represent the application component that is the source of
+the logs.
+
+Examples:
+```properties
+## a literal value
+logger.component=my-application
+
+## uses system property `SERVICE_NAME` or environment variable `SERVICE_NAME`
+logger.component=${SERVICE_NAME}
+
+## uses system property `service.name` or environment variable `SERVICE_NAME`
+logger.component=${service.name}
+
+```
+
+#### env - Environment
+
+An `env` key value is added automatically if:
+- There is a `logger.environment` property set in `avaje-logger.properties`
+- There is an `ENVIRONMENT` environment variable set
+
+Examples:
+```properties
+## uses system property `app.env` or environment variable `APP_ENV`, defaults to `localdev`
+logger.environment=${app.env:localdev}
+
+## literal value
+logger.environment=DEV
+```
+
 
 ## Dynamic log level configuration
 

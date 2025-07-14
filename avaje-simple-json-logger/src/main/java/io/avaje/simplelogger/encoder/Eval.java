@@ -69,10 +69,18 @@ final class Eval {
     if (val != null) {
       return val;
     }
+    val = System.getenv(toEnvPropertyKey(key));
+    if (val != null) {
+      return val;
+    }
     return split.length == 2 ? split[1] : value;
   }
 
   static String toSystemPropertyKey(String key) {
     return key.replace('_', '.').toLowerCase();
+  }
+
+  static String toEnvPropertyKey(String key) {
+    return key.replace('.', '_').toUpperCase();
   }
 }
