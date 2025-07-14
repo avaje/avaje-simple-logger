@@ -55,6 +55,21 @@ log.level.io.ebean.DDL=TRACE
 #log.level.io.ebean.TXN=DEBUG
 ```
 
+## Debugging
+
+To debug avaje-simple-logger set the log level for `io.avaje.simplelogger` to `DEBUG`
+
+```properties
+log.level.io.avaje.simplelogger=DEBUG
+```
+
+If you are also using `io.avaje:avaje-aws-appconfig`, then you can additionally set `io.avaje.config` to `TRACE`.
+
+```properties
+log.level.io.avaje.config=TRACE
+```
+
+
 ## Configure
 
 Configure the logger via main resource `avaje-logger.properties`
