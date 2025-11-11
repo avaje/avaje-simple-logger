@@ -18,7 +18,7 @@ and turned into a SLF4J Logger, thus removing the dependency on Logback and its 
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-logger</artifactId>
-    <version>0.2</version>
+    <version>1.0</version>
   </dependency>
 ```
 
@@ -178,7 +178,7 @@ This excludes the avaje-config dependency.
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-json-logger</artifactId>
-    <version>0.2</version>
+    <version>1.0</version>
   </dependency>
 ```
 
