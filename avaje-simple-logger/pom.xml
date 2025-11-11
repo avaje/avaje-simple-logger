@@ -44,6 +44,12 @@
       <artifactId>avaje-config</artifactId>
       <version>4.2</version>
     </dependency>
+    <dependency>
+      <groupId>org.graalvm.nativeimage</groupId>
+      <artifactId>svm</artifactId>
+      <version>25.0.1</version>
+      <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>io.avaje</groupId>
