@@ -17,6 +17,7 @@
   <modules>
     <module>avaje-simple-json-logger</module>
     <module>avaje-simple-logger</module>
+    <module>graalvm-feature</module>
   </modules>
 
 </project>
