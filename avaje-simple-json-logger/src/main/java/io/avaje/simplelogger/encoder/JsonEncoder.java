@@ -24,9 +24,19 @@ final class JsonEncoder {
   private final String environment;
   private final boolean includeStackHash;
 
-  JsonEncoder(JsonStream json, String component, String environment, StackHasher stackHasher, DateTimeFormatter formatter, boolean includeStackHash, Map<String, String> customFieldsMap, ThrowableConverter throwableConverter) {
+  JsonEncoder(
+        String[] propertyNames,
+        JsonStream json,
+        String component,
+        String environment,
+        StackHasher stackHasher,
+        DateTimeFormatter formatter,
+        boolean includeStackHash,
+        Map<String, String> customFieldsMap,
+        ThrowableConverter throwableConverter) {
+
     this.json = json;
-    this.properties = this.json.properties("component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace");
+    this.properties = this.json.properties(propertyNames);
     this.component = component;
     this.environment = environment;
     this.stackHasher = stackHasher;

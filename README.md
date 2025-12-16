@@ -120,6 +120,17 @@ By default, the log format is JSON. Example:
 }
 ```
 
+To override the json property names use `logger.propertyNames` delimited by `=` and `,` like:
+```properties
+## delimited by comma and equals
+logger.propertyNames=logger=loggerName,env=environment,timestamp=@timestamp
+```
+
+Example overriding a single property:
+```properties
+logger.propertyNames=logger=loggerName
+```
+
 #### component
 
 A `component` key value is added if:
