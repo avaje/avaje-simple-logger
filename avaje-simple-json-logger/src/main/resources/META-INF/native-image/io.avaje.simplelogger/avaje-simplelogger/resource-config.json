@@ -1,7 +1,7 @@
 {
  "resources": [
   {
-   "pattern": "avaje-logger.*properties"
+   "pattern": "avaje-logger*.properties"
   }
  ]
 }

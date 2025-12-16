@@ -57,6 +57,7 @@ public final class Bootstrap {
     var jsonEncoder = new JsonEncoderBuilder()
       .component(property(properties, "logger.component"))
       .environment(property(properties,"logger.environment"))
+      .propertyNames(property(properties,"logger.propertyNames"))
       .customFields(property(properties, "logger.customFields"))
       .timestampPattern(timestampPattern)
       .timeZone(timeZone)

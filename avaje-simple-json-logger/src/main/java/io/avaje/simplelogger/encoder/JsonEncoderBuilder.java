@@ -22,6 +22,7 @@ final class JsonEncoderBuilder {
   private String timestampPattern;
   private String component;
   private String environment;
+  private String propertyNames;
   private boolean includeStackHash = true;
 
   JsonEncoderBuilder json(JsonStream json) {
@@ -56,6 +57,11 @@ final class JsonEncoderBuilder {
 
   JsonEncoderBuilder environment(String environment) {
     this.environment = environment;
+    return this;
+  }
+
+  JsonEncoderBuilder propertyNames(String propertyNames) {
+    this.propertyNames = propertyNames;
     return this;
   }
 
@@ -96,8 +102,38 @@ final class JsonEncoderBuilder {
     if (stackHasher == null) {
       stackHasher = new StackHasher(StackElementFilter.builder().allFilters().build());
     }
+    String[] mappedPropertyNames = toPropertyNames(propertyNames);
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
-    return new JsonEncoder(json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
+    return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
+  }
+
+  static String[] toPropertyNames(String mapping) {
+    String[] keys = {"component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace"};
+    if (mapping == null || mapping.isEmpty()) {
+      return keys;
+    }
+    return toPropertyNames(parseNameMapping(mapping), keys);
+  }
+
+  private static Map<String,String> parseNameMapping(String mapping) {
+    Map<String,String> map = new HashMap<>();
+    String[] split = mapping.split("[,;]");
+    for (String keyVal : split) {
+      String[] nameVal = keyVal.trim().split("=");
+      if (nameVal.length == 2) {
+       map.put(nameVal[0].toLowerCase().trim(), nameVal[1].trim());
+      }
+    }
+    return map;
+  }
+
+  private static String[] toPropertyNames(Map<String,String> map, String[] baseNames) {
+    String[] names = new String[baseNames.length];
+    for (int i = 0; i < baseNames.length; i++) {
+      String overrideName = map.get(baseNames[i]);
+      names[i] = overrideName != null ? overrideName : baseNames[i];
+    }
+    return names;
   }
 
 }
