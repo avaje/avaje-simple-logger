@@ -1,13 +1,12 @@
 # avaje-simple-logger
 
-A SLF4J Logger built primarily for use with GraalVM Native image that writes JSON structured logs to `System.out`.
-It is designed to be used by applications that will be run in **K8s** or **Lambda**.
+A SLF4J Logger built primarily for use with GraalVM Native image that writes JSON structured logs (or plain format)
+to `System.out`. It is designed to be used by applications that will be run in **K8s** or **Lambda**.
 
+It supports GraalVM Native image, and also supports dynamic log levels. It is built with simple configuration
+in mind based on properties (no reflection).
 
-## Background
-
-This logger has been created from the Logback JSON Encoder from [avaje-logback-encoder](https://github.com/avaje/avaje-logback-encoder),
-and turned into a SLF4J Logger, thus removing the dependency on Logback and its associated XML configuration.
+It is not intended to be a full featured logging framework with appenders, filters, etc (sticking to `System.out`).
 
 
 ## How to use it
@@ -18,7 +17,7 @@ and turned into a SLF4J Logger, thus removing the dependency on Logback and its 
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-logger</artifactId>
-    <version>1.0</version>
+    <version>1.3</version>
   </dependency>
 ```
 
@@ -54,6 +53,33 @@ log.level.io.ebean.DDL=TRACE
 #log.level.io.ebean.SQL=DEBUG
 #log.level.io.ebean.TXN=DEBUG
 ```
+
+## External configuration
+
+We can override the configuration via setting a system property `logger.config`.
+
+```sh
+java -Dlogger.config=/path/to/my-logger.properties -jar myapp.jar
+```
+
+Note that `~` can be used to represent the user home directory like:
+```sh
+java -Dlogger.config=~/my-logger.properties -jar myapp.jar
+```
+
+When we specify an external configuration file via `logger.config`, then it is used *instead of*
+the default `avaje-logger.properties` and `avaje-logger-test.properties` files.
+
+
+## GraalVM Native Image
+
+When building a GraalVM native image, the *log format* (JSON or plain) is initialised at BUILD time.
+This means that at runtime we cannot change the format via an external configuration file.
+
+The reason for this, is that GraalVM native image wants to initialize as much as possible at build time,
+and specifically the `System.Logger` is initialised at build time. So as we want avaje-simple-logger to
+be the `System.Logger` implementation, we need to fix the log format at build time.
+
 
 ## Debugging
 
