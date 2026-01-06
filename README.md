@@ -67,18 +67,19 @@ Note that `~` can be used to represent the user home directory like:
 java -Dlogger.config=~/my-logger.properties -jar myapp.jar
 ```
 
-When we specify an external configuration file via `logger.config`, then it is used *instead of*
-the default `avaje-logger.properties` and `avaje-logger-test.properties` files.
+When we specify an external configuration file via `logger.config`, then it is merged
+with the default resource `avaje-logger.properties` configuration, with the external
+configuration overriding the default configuration.
 
 
 ## GraalVM Native Image
 
-When building a GraalVM native image, the *log format* (JSON or plain) is initialised at BUILD time.
-This means that at runtime we cannot change the format via an external configuration file.
+Note that GraalVM native image wants to initialize as much as possible at build time,
+and specifically the `System.Logger` is initialized at build time. We want avaje-simple-logger to
+be the `System.Logger` implementation, so avaje-simple-logger classes are also initialized at build time.
 
-The reason for this, is that GraalVM native image wants to initialize as much as possible at build time,
-and specifically the `System.Logger` is initialised at build time. So as we want avaje-simple-logger to
-be the `System.Logger` implementation, we need to fix the log format at build time.
+In the native-image build in `user-specific feature(s):` section we will see
+`io.avaje.simplelogger.graalvm.BuildInitialization` indicating that is happening.
 
 
 ## Debugging
