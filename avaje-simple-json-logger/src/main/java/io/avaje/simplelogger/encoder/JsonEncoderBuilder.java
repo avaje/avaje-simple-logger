@@ -116,11 +116,11 @@ final class JsonEncoderBuilder {
 
   static String[] basePropertyNames(String naming) {
     if ("underscore".equals(naming)) {
-      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_stackhash", "exception_stacktrace", "exception_type", "exception_message"};
+      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace"};
     } else if ("camel".equals(naming)) {
-      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionStackhash", "exceptionStacktrace", "exceptionType", "exceptionMessage"};
+      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace"};
     } else {
-      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace", "exceptionType", "exceptionMessage"};
+      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace"};
     }
   }
 
