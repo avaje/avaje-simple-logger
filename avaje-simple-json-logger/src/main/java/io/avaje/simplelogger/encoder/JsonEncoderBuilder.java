@@ -22,6 +22,7 @@ final class JsonEncoderBuilder {
   private String timestampPattern;
   private String component;
   private String environment;
+  private String naming;
   private String propertyNames;
   private boolean includeStackHash = true;
 
@@ -57,6 +58,11 @@ final class JsonEncoderBuilder {
 
   JsonEncoderBuilder environment(String environment) {
     this.environment = environment;
+    return this;
+  }
+
+  JsonEncoderBuilder naming(String naming) {
+    this.naming = naming;
     return this;
   }
 
@@ -102,13 +108,23 @@ final class JsonEncoderBuilder {
     if (stackHasher == null) {
       stackHasher = new StackHasher(StackElementFilter.builder().allFilters().build());
     }
-    String[] mappedPropertyNames = toPropertyNames(propertyNames);
+    String[] keys = basePropertyNames(naming);
+    String[] mappedPropertyNames = toPropertyNames(keys, propertyNames);
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
     return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
   }
 
-  static String[] toPropertyNames(String mapping) {
-    String[] keys = {"component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace"};
+  static String[] basePropertyNames(String naming) {
+    if ("underscore".equals(naming)) {
+      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_stackhash", "exception_stacktrace", "exception_type", "exception_message"};
+    } else if ("camel".equals(naming)) {
+      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionStackhash", "exceptionStacktrace", "exceptionType", "exceptionMessage"};
+    } else {
+      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace", "exceptionType", "exceptionMessage"};
+    }
+  }
+
+  static String[] toPropertyNames(String[] keys, String mapping) {
     if (mapping == null || mapping.isEmpty()) {
       return keys;
     }
@@ -121,7 +137,7 @@ final class JsonEncoderBuilder {
     for (String keyVal : split) {
       String[] nameVal = keyVal.trim().split("=");
       if (nameVal.length == 2) {
-       map.put(nameVal[0].toLowerCase().trim(), nameVal[1].trim());
+       map.put(nameVal[0].trim(), nameVal[1].trim());
       }
     }
     return map;

@@ -24,6 +24,7 @@ class DynamicLogLevelsTest {
 
     logFoo.debug("hi foo");
     logBar.debug("hi bar before");
+    invokeAnException();
 
     LoggerContext.get()
       .putAll(Map.of("org.bar.extra", "trace"));
@@ -37,6 +38,15 @@ class DynamicLogLevelsTest {
 
     logBar.debug("hi bar after dynamic log level change");
     logFoo.debug("hi foo last");
+
+  }
+
+  private void invokeAnException() {
+    try {
+      throw new RuntimeException("bad stuff");
+    } catch (RuntimeException e) {
+      logFoo.error("Zee caught exception", e);
+    }
   }
 
 }

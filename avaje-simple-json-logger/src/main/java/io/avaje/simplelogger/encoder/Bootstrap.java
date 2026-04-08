@@ -57,6 +57,7 @@ public final class Bootstrap {
     var jsonEncoder = new JsonEncoderBuilder()
       .component(property(properties, "logger.component"))
       .environment(property(properties,"logger.environment"))
+      .naming(property(properties,"logger.naming"))
       .propertyNames(property(properties,"logger.propertyNames"))
       .customFields(property(properties, "logger.customFields"))
       .timestampPattern(timestampPattern)
@@ -98,6 +99,7 @@ public final class Bootstrap {
 
   static Properties defaultProperties() {
     final var properties = new Properties();
+    loadResource(properties, "avaje-logger-common.properties");
     loadResource(properties, "avaje-logger.properties");
     return properties;
   }

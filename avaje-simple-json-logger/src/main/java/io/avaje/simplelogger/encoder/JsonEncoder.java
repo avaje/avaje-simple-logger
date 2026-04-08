@@ -88,6 +88,10 @@ final class JsonEncoder {
           writer.name(7);
           writer.value(hash);
         }
+        writer.name(9);
+        writer.value(t.getClass().getName());
+        writer.name(10);
+        writer.value(t.getMessage());
         writer.name(8);
         writer.value(stackTraceBody);
       }
