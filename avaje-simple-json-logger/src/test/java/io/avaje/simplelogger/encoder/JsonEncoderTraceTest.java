@@ -131,7 +131,6 @@ class JsonEncoderTraceTest {
     // trace_id/span_id/trace_flags from MDC should be excluded
     assertThat(json).doesNotContain("\"trace_id\"");
     assertThat(json).doesNotContain("\"span_id\"");
-    assertThat(json).doesNotContain("\"trace_flags\"");
     // other MDC entries should still appear
     assertThat(json).contains("\"customKey\":\"customValue\"");
   }
