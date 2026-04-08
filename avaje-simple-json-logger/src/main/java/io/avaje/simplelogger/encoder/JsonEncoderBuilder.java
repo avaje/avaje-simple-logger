@@ -111,16 +111,27 @@ final class JsonEncoderBuilder {
     String[] keys = basePropertyNames(naming);
     String[] mappedPropertyNames = toPropertyNames(keys, propertyNames);
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
-    return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
+    final TraceContext traceContext = initTraceContext();
+    return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter, traceContext);
+  }
+
+  private static TraceContext initTraceContext() {
+    try {
+      Class.forName("io.opentelemetry.api.trace.Span");
+      return (TraceContext) Class.forName("io.avaje.simplelogger.encoder.OtelTraceContext")
+        .getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      return new NoopTraceContext();
+    }
   }
 
   static String[] basePropertyNames(String naming) {
     if ("underscore".equals(naming)) {
-      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace"};
+      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"};
     } else if ("camel".equals(naming)) {
-      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace"};
+      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace", "traceId", "spanId"};
     } else {
-      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace"};
+      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"};
     }
   }
 
