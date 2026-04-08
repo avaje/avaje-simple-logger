@@ -83,12 +83,16 @@ final class JsonEncoder {
       writer.name(6);
       writer.value(threadName);
       if (!stackTraceBody.isEmpty()) {
+        writer.name(7);
+        writer.value(t.getClass().getName());
+        writer.name(8);
+        writer.value(t.getMessage());
         if (includeStackHash) {
           String hash = stackHasher.hexHash(t);
-          writer.name(7);
+          writer.name(9);
           writer.value(hash);
         }
-        writer.name(8);
+        writer.name(10);
         writer.value(stackTraceBody);
       }
       customFieldsMap.forEach((k, v) -> {
