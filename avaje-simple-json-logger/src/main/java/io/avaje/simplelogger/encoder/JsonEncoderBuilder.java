@@ -22,6 +22,7 @@ final class JsonEncoderBuilder {
   private String timestampPattern;
   private String component;
   private String environment;
+  private String naming;
   private String propertyNames;
   private boolean includeStackHash = true;
 
@@ -57,6 +58,11 @@ final class JsonEncoderBuilder {
 
   JsonEncoderBuilder environment(String environment) {
     this.environment = environment;
+    return this;
+  }
+
+  JsonEncoderBuilder naming(String naming) {
+    this.naming = naming;
     return this;
   }
 
@@ -102,13 +108,34 @@ final class JsonEncoderBuilder {
     if (stackHasher == null) {
       stackHasher = new StackHasher(StackElementFilter.builder().allFilters().build());
     }
-    String[] mappedPropertyNames = toPropertyNames(propertyNames);
+    String[] keys = basePropertyNames(naming);
+    String[] mappedPropertyNames = toPropertyNames(keys, propertyNames);
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
-    return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter);
+    final TraceContext traceContext = initTraceContext();
+    return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter, traceContext);
   }
 
-  static String[] toPropertyNames(String mapping) {
-    String[] keys = {"component", "env", "timestamp", "level", "logger", "message", "thread", "stackhash", "stacktrace"};
+  private static TraceContext initTraceContext() {
+    try {
+      Class.forName("io.opentelemetry.api.trace.Span");
+      return (TraceContext) Class.forName("io.avaje.simplelogger.encoder.OtelTraceContext")
+        .getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      return new NoopTraceContext();
+    }
+  }
+
+  static String[] basePropertyNames(String naming) {
+    if ("underscore".equals(naming)) {
+      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"};
+    } else if ("camel".equals(naming)) {
+      return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace", "traceId", "spanId"};
+    } else {
+      return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"};
+    }
+  }
+
+  static String[] toPropertyNames(String[] keys, String mapping) {
     if (mapping == null || mapping.isEmpty()) {
       return keys;
     }
@@ -121,7 +148,7 @@ final class JsonEncoderBuilder {
     for (String keyVal : split) {
       String[] nameVal = keyVal.trim().split("=");
       if (nameVal.length == 2) {
-       map.put(nameVal[0].toLowerCase().trim(), nameVal[1].trim());
+       map.put(nameVal[0].trim(), nameVal[1].trim());
       }
     }
     return map;

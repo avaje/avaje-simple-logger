@@ -33,7 +33,12 @@ public class BuildInitialization implements Feature {
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.JsonWriter"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.SimpleLogger"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.PlainLogWriter"));
-
+    RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.NoopTraceContext"));
+    // register OtelTraceContext for build-time init when OTEL is on the classpath
+    Class<?> otelSpan = access.findClassByName("io.opentelemetry.api.trace.Span");
+    if (otelSpan != null) {
+      RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.OtelTraceContext"));
+    }
 
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.json.stream.core.JsonNames"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.json.stream.core.CoreJsonStream"));
