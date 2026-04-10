@@ -19,6 +19,7 @@ final class JsonEncoder {
   private final StackHasher stackHasher;
   private final ThrowableConverter throwableConverter;
   private final DateTimeFormatter formatter;
+  private final TraceContext traceContext;
   private final int fieldExtra;
   private final String component;
   private final String environment;
@@ -33,7 +34,8 @@ final class JsonEncoder {
         DateTimeFormatter formatter,
         boolean includeStackHash,
         Map<String, String> customFieldsMap,
-        ThrowableConverter throwableConverter) {
+        ThrowableConverter throwableConverter,
+        TraceContext traceContext) {
 
     this.json = json;
     this.properties = this.json.properties(propertyNames);
@@ -44,6 +46,7 @@ final class JsonEncoder {
     this.includeStackHash = includeStackHash;
     this.customFieldsMap = customFieldsMap;
     this.throwableConverter = throwableConverter;
+    this.traceContext = traceContext;
     this.fieldExtra = this.customFieldsMap.entrySet().stream()
       .mapToInt(e -> e.getKey().length() + e.getValue().length() + 6)
       .sum();
@@ -82,6 +85,16 @@ final class JsonEncoder {
       writer.value(message);
       writer.name(6);
       writer.value(threadName);
+      String traceId = traceContext.traceId();
+      if (traceId != null) {
+        writer.name(11);
+        writer.value(traceId);
+      }
+      String spanId = traceContext.spanId();
+      if (spanId != null) {
+        writer.name(12);
+        writer.value(spanId);
+      }
       if (!stackTraceBody.isEmpty()) {
         writer.name(7);
         writer.value(t.getClass().getName());
@@ -102,8 +115,10 @@ final class JsonEncoder {
       Map<String, String> contextMap = MDC.getCopyOfContextMap();
       if (contextMap != null) {
         contextMap.forEach((k, v) -> {
-          writer.name(k);
-          writer.value(v);
+          if (!"trace_id".equals(k) && !"span_id".equals(k)) {
+            writer.name(k);
+            writer.value(v);
+          }
         });
       }
       writer.endObject();
