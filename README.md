@@ -17,7 +17,7 @@ It is not intended to be a full featured logging framework with appenders, filte
   <dependency>
     <groupId>io.avaje</groupId>
     <artifactId>avaje-simple-logger</artifactId>
-    <version>1.3</version>
+    <version>1.5-RC1</version>
   </dependency>
 ```
 
@@ -27,6 +27,7 @@ Configure via adding a `src/main/resources/avaje-logger.properties`
 ```properties
 ## specify the default log level to use for testing
 logger.defaultLogLevel=warn
+logger.naming=underscore
 
 ## specify some default log levels
 log.level.com.foo.bar=DEBUG
