@@ -14,6 +14,10 @@
   <version>1.5-RC1</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <slf4j.version>2.0.17</slf4j.version>
+  </properties>
+
   <modules>
     <module>avaje-simple-json-logger</module>
     <module>avaje-simple-logger</module>

@@ -148,6 +148,31 @@ By default, the log format is JSON. Example:
 }
 ```
 
+### SLF4J 2 fluent key/value entries
+
+`addKeyValue()` entries from the SLF4J 2 fluent API are emitted as structured fields.
+
+```java
+logger.atInfo()
+  .addKeyValue("orderId", orderId)
+  .addKeyValue("processed", true)
+  .log("Order processed");
+```
+
+Example JSON output:
+
+```json
+{
+  "level":"INFO",
+  "logger":"com.example.OrderService",
+  "message":"Order processed",
+  "orderId":42,
+  "processed":true
+}
+```
+
+For `logger.format=plain`, fluent key/value entries are rendered as `key=value` pairs before the message.
+
 To override the json property names use `logger.propertyNames` delimited by `=` and `,` like:
 ```properties
 ## delimited by comma and equals
@@ -230,4 +255,3 @@ nameLevels.put("com.foo.bar", "info");
 ...
 LoggerContext.get().putAll(nameLevels);
 ```
-
