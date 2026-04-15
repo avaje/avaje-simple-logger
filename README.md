@@ -142,7 +142,7 @@ By default, the log format is JSON. Example:
   "env":"dev",
   "timestamp":"2025-07-14T13:44:44.230959+12:00",
   "level":"TRACE",
-  "logger":"io.avaje.config",
+  "logger_name":"io.avaje.config",
   "message":"load from [resource:application-test.properties]",
   "thread":"main"
 }
@@ -173,15 +173,60 @@ Example JSON output:
 
 For `logger.format=plain`, fluent key/value entries are rendered as `key=value` pairs before the message.
 
-To override the json property names use `logger.propertyNames` delimited by `=` and `,` like:
+### JSON Field Naming Conventions
+
+avaje-simple-logger supports three field naming conventions via the `logger.naming` property:
+
+| Convention | Description | Examples |
+|-----------|-------------|----------|
+| **underscore** (DEFAULT) | All fields use underscore format | `logger_name`, `exception_type`, `exception_message`, `exception_stacktrace` |
+| **camel** | All fields use camelCase format | `loggerName`, `exceptionType`, `exceptionMessage`, `exceptionStacktrace` |
+| **legacy** | Mixed format for backwards compatibility | `logger`, `exceptionType`, `exceptionMessage`, `stacktrace` |
+
+Configure the naming convention in your properties file:
+
+```properties
+# Underscore format (default, no need to specify)
+logger.naming=underscore
+
+# OR use camelCase
+logger.naming=camel
+
+# OR use legacy format
+logger.naming=legacy
+```
+
+Example with underscore (default):
+```json
+{
+  "logger_name":"io.avaje.config",
+  "exception_type":"java.lang.RuntimeException",
+  "exception_message":"Configuration error",
+  "exception_stacktrace":"..."
+}
+```
+
+Example with camelCase:
+```json
+{
+  "loggerName":"io.avaje.config",
+  "exceptionType":"java.lang.RuntimeException",
+  "exceptionMessage":"Configuration error",
+  "exceptionStacktrace":"..."
+}
+```
+
+### Overriding Individual Property Names
+
+To override specific json property names use `logger.propertyNames` delimited by `=` and `,` like:
 ```properties
 ## delimited by comma and equals
-logger.propertyNames=logger=loggerName,env=environment,timestamp=@timestamp
+logger.propertyNames=logger_name=loggerName,env=environment,timestamp=@timestamp
 ```
 
 Example overriding a single property:
 ```properties
-logger.propertyNames=logger=loggerName
+logger.propertyNames=logger_name=customLoggerName
 ```
 
 #### component

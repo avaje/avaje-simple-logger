@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JsonEncoderBuilderTest {
 
-  String[] baseKeys = {"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"};
+  String[] baseKeys = {"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"};
 
   @Test
   void toPropertyNames_when_null() {
@@ -20,21 +20,21 @@ class JsonEncoderBuilderTest {
   @Test
   void toPropertyNames_several() {
     String[] originalKeys = JsonEncoderBuilder.basePropertyNames(null);
-    String[] names = JsonEncoderBuilder.toPropertyNames(originalKeys,"component = c; env=e,thread=_foo ,exceptionType=exType ");
-    assertThat(names).isEqualTo(new String[]{"c", "e", "timestamp", "level", "logger", "message", "_foo", "exType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"});
+    String[] names = JsonEncoderBuilder.toPropertyNames(originalKeys,"component = c; env=e,thread=_foo ,exception_type=exType ");
+    assertThat(names).isEqualTo(new String[]{"c", "e", "timestamp", "level", "logger_name", "message", "_foo", "exType", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"});
   }
 
   @Test
   void toPropertyNames_onlyOne() {
     String[] originalKeys = JsonEncoderBuilder.basePropertyNames(null);
-    String[] names = JsonEncoderBuilder.toPropertyNames(originalKeys, "logger=loggerName");
-    assertThat(names).isEqualTo(new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"});
+    String[] names = JsonEncoderBuilder.toPropertyNames(originalKeys, "logger_name=customLoggerName");
+    assertThat(names).isEqualTo(new String[]{"component", "env", "timestamp", "level", "customLoggerName", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"});
   }
 
   @Test
   void basePropertyNames() {
     String[] keys = JsonEncoderBuilder.basePropertyNames(null);
-    assertThat(keys).isEqualTo(new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"});
+    assertThat(keys).isEqualTo(new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"});
   }
 
   @Test
@@ -43,9 +43,14 @@ class JsonEncoderBuilderTest {
     assertThat(keys).isEqualTo(new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"});
   }
 
+  @Test
+  void basePropertyNames_legacy() {
+    String[] keys = JsonEncoderBuilder.basePropertyNames("legacy");
+    assertThat(keys).isEqualTo(new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"});
+  }
 
   @Test
-  void basePropertyNames_camal() {
+  void basePropertyNames_camel() {
     String[] keys = JsonEncoderBuilder.basePropertyNames("camel");
     assertThat(keys).isEqualTo(new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace", "traceId", "spanId"});
   }

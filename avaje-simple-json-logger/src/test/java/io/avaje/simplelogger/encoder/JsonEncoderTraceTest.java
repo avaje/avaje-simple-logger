@@ -86,9 +86,9 @@ class JsonEncoderTraceTest {
 
       assertThat(json).contains("\"trace_id\":\"" + TRACE_ID + "\"");
       assertThat(json).contains("\"span_id\":\"" + SPAN_ID + "\"");
-      assertThat(json).contains("\"exceptionType\":\"java.lang.RuntimeException\"");
-      assertThat(json).contains("\"exceptionMessage\":\"test error\"");
-      assertThat(json).contains("\"stacktrace\":");
+      assertThat(json).contains("\"exception_type\":\"java.lang.RuntimeException\"");
+      assertThat(json).contains("\"exception_message\":\"test error\"");
+      assertThat(json).contains("\"exception_stacktrace\":");
     }
   }
 
