@@ -150,13 +150,30 @@ final class JsonEncoder {
       if (keyValuePair == null) {
         continue;
       }
-      extra += String.valueOf(keyValuePair.key).length();
-      extra += String.valueOf(keyValuePair.value).length();
+      extra += keyValuePair.key == null ? 4 : keyValuePair.key.length();
+      extra += estimatedValueLength(keyValuePair.value);
       extra += 6;
     }
     return extra;
   }
 
+  private static int estimatedValueLength(Object value) {
+    if (value == null) {
+      return 4;
+    } else if (value instanceof CharSequence) {
+      return ((CharSequence) value).length();
+    } else if (value instanceof Boolean) {
+      return ((Boolean) value) ? 4 : 5;
+    } else if (value instanceof Integer || value instanceof Long || value instanceof Double
+      || value instanceof Float || value instanceof Short || value instanceof Byte
+      || value instanceof BigDecimal || value instanceof BigInteger) {
+      return String.valueOf(value).length();
+    } else if (value instanceof byte[]) {
+      return ((byte[]) value).length;
+    } else {
+      return 16;
+    }
+  }
   private static void writeKeyValue(JsonWriter writer, Object value) {
     if (value == null) {
       writer.nullValue();
