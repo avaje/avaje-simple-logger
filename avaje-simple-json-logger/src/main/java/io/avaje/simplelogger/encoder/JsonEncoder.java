@@ -183,8 +183,15 @@ final class JsonEncoder {
     } else if (value instanceof byte[]) {
       writer.value((byte[]) value);
     } else {
-      writer.value(value.toString());
+      writer.value(safeToString(value));
     }
   }
 
+  private static String safeToString(Object value) {
+    try {
+      return String.valueOf(value);
+    } catch (RuntimeException e) {
+      return "<toString() failed: " + e.getClass().getName() + ">";
+    }
+  }
 }
