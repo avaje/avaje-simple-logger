@@ -1,14 +1,19 @@
 package io.avaje.simplelogger.encoder;
 
 import io.avaje.json.PropertyNames;
+import io.avaje.json.JsonWriter;
 import io.avaje.json.stream.JsonStream;
 import org.slf4j.MDC;
 import org.slf4j.event.Level;
+import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 final class JsonEncoder {
@@ -52,7 +57,7 @@ final class JsonEncoder {
       .sum();
   }
 
-  byte[] encode(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t) {
+  byte[] encode(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
     final String stackTraceBody = t == null ? "" : throwableConverter.convert(t);
     final int extra = stackTraceBody.isEmpty() ? 0 : 20 + stackTraceBody.length();
 
@@ -62,7 +67,7 @@ final class JsonEncoder {
     }
 
     final var threadName = Thread.currentThread().getName();
-    final int bufferSize = 100 + extra + fieldExtra + message.length() + threadName.length() + loggerName.length();
+    final int bufferSize = 100 + extra + fieldExtra + keyValueExtra(keyValuePairs) + message.length() + threadName.length() + loggerName.length();
     final var outputStream = new ByteArrayOutputStream(bufferSize);
 
     try (var writer = json.writer(outputStream)) {
@@ -108,6 +113,15 @@ final class JsonEncoder {
         writer.name(10);
         writer.value(stackTraceBody);
       }
+      if (keyValuePairs != null) {
+        for (KeyValuePair keyValuePair : keyValuePairs) {
+          if (keyValuePair == null) {
+            continue;
+          }
+          writer.name(String.valueOf(keyValuePair.key));
+          writeKeyValue(writer, keyValuePair.value);
+        }
+      }
       customFieldsMap.forEach((k, v) -> {
         writer.name(k);
         writer.rawValue(v);
@@ -127,4 +141,66 @@ final class JsonEncoder {
     return outputStream.toByteArray();
   }
 
+  private static int keyValueExtra(List<KeyValuePair> keyValuePairs) {
+    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+      return 0;
+    }
+    int extra = 0;
+    for (KeyValuePair keyValuePair : keyValuePairs) {
+      if (keyValuePair == null) {
+        continue;
+      }
+      extra += keyValuePair.key == null ? 4 : keyValuePair.key.length();
+      extra += estimatedValueLength(keyValuePair.value);
+      extra += 6;
+    }
+    return extra;
+  }
+
+  private static int estimatedValueLength(Object value) {
+    if (value == null) {
+      return 4;
+    } else if (value instanceof CharSequence) {
+      return ((CharSequence) value).length();
+    } else {
+      return 16;
+    }
+  }
+  private static void writeKeyValue(JsonWriter writer, Object value) {
+    if (value == null) {
+      writer.nullValue();
+    } else if (value instanceof CharSequence) {
+      writer.value(value.toString());
+    } else if (value instanceof Boolean) {
+      writer.value((Boolean) value);
+    } else if (value instanceof Integer) {
+      writer.value((Integer) value);
+    } else if (value instanceof Long) {
+      writer.value((Long) value);
+    } else if (value instanceof Double) {
+      writer.value((Double) value);
+    } else if (value instanceof Float) {
+      writer.value(((Float) value).doubleValue());
+    } else if (value instanceof Short) {
+      writer.value(((Short) value).intValue());
+    } else if (value instanceof Byte) {
+      writer.value(((Byte) value).intValue());
+    } else if (value instanceof BigDecimal) {
+      writer.value((BigDecimal) value);
+    } else if (value instanceof BigInteger) {
+      writer.value((BigInteger) value);
+    } else if (value instanceof byte[]) {
+      writer.value((byte[]) value);
+    } else {
+      writer.value(safeToString(value));
+    }
+  }
+
+  static String safeToString(Object value) {
+    try {
+      return String.valueOf(value);
+    } catch (RuntimeException e) {
+      return "<toString() failed: " + e.getClass().getName() + ">";
+    }
+  }
 }

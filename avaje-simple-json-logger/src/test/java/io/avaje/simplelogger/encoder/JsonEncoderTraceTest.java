@@ -34,7 +34,7 @@ class JsonEncoderTraceTest {
   }
 
   private String encode(JsonEncoder encoder, String message, Throwable t) {
-    byte[] bytes = encoder.encode("test.Logger", Level.INFO, message, null, t);
+    byte[] bytes = encoder.encode("test.Logger", Level.INFO, message, null, t, null);
     return new String(bytes, StandardCharsets.UTF_8);
   }
 
@@ -111,7 +111,7 @@ class JsonEncoderTraceTest {
     Span span = Span.wrap(spanContext);
 
     try (Scope ignored = span.makeCurrent()) {
-      byte[] bytes = encoder.encode("test.Logger", Level.INFO, "check", null, null);
+      byte[] bytes = encoder.encode("test.Logger", Level.INFO, "check", null, null, null);
       String json = new String(bytes, StandardCharsets.UTF_8);
       assertThat(json).contains("\"trace_id\":\"" + TRACE_ID + "\"");
     }

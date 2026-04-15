@@ -2,11 +2,13 @@ package io.avaje.simplelogger.encoder;
 
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
+import org.slf4j.event.LoggingEvent;
 import org.slf4j.helpers.LegacyAbstractLogger;
+import org.slf4j.spi.LoggingEventAware;
 
 import static org.slf4j.spi.LocationAwareLogger.*;
 
-final class SimpleLogger extends LegacyAbstractLogger {
+final class SimpleLogger extends LegacyAbstractLogger implements LoggingEventAware {
 
   private final LogWriter writer;
   private final String shortName;
@@ -66,8 +68,21 @@ final class SimpleLogger extends LegacyAbstractLogger {
     logNormalized(level, messagePattern, arguments, throwable);
   }
 
+  @Override
+  public void log(LoggingEvent event) {
+    final Level eventLevel = event.getLevel();
+    if (eventLevel == null || !isEnabled(eventLevel.toInt())) {
+      return;
+    }
+    writer.log(shortName, eventLevel, event.getMessage(), event.getArgumentArray(), event.getThrowable(), event.getKeyValuePairs());
+  }
+
+  private boolean isEnabled(int eventLevel) {
+    return eventLevel >= level;
+  }
+
   private void logNormalized(Level level, String messagePattern, Object[] arguments, Throwable t) {
-    writer.log(shortName, level, messagePattern, arguments, t);
+    writer.log(shortName, level, messagePattern, arguments, t, null);
   }
 
 //    public void log(LoggingEvent event) {

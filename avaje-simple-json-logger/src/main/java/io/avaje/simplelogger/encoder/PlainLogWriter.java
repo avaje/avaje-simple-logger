@@ -1,12 +1,16 @@
 package io.avaje.simplelogger.encoder;
 
 import org.slf4j.event.Level;
+import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.spi.LocationAwareLogger;
 
 import java.io.PrintStream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import static io.avaje.simplelogger.encoder.JsonEncoder.safeToString;
 
 final class PlainLogWriter implements LogWriter {
 
@@ -23,7 +27,7 @@ final class PlainLogWriter implements LogWriter {
   }
 
   @Override
-  public void log(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t) {
+  public void log(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
     StringBuilder buf = new StringBuilder(200);
     buf.append(formattedTimestamp());
     buf.append(SP);
@@ -36,8 +40,29 @@ final class PlainLogWriter implements LogWriter {
     buf.append(SP);
 
     buf.append(loggerName).append(" - ");
-    buf.append(MessageFormatter.basicArrayFormat(messagePattern, arguments));
+    final String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
+    buf.append(withKeyValues(message, keyValuePairs));
     write(buf, t);
+  }
+
+  private String withKeyValues(String message, List<KeyValuePair> keyValuePairs) {
+    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+      return message;
+    }
+    final StringBuilder content = new StringBuilder(40 + (message == null ? 0 : message.length()));
+    for (KeyValuePair keyValuePair : keyValuePairs) {
+      if (keyValuePair == null) {
+        continue;
+      }
+      content.append(keyValuePair.key)
+        .append('=')
+        .append(safeToString(keyValuePair.value))
+        .append(SP);
+    }
+    if (message != null) {
+      content.append(message);
+    }
+    return content.toString();
   }
 
   private void write(StringBuilder buf, Throwable t) {
