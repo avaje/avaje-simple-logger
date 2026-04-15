@@ -126,12 +126,13 @@ final class JsonEncoderBuilder {
   }
 
   static String[] basePropertyNames(String naming) {
-    if ("underscore".equals(naming)) {
-      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"};
-    } else if ("camel".equals(naming)) {
+    if ("camel".equals(naming)) {
       return new String[]{"component", "env", "timestamp", "level", "loggerName", "message", "thread", "exceptionType", "exceptionMessage", "exceptionStackhash", "exceptionStacktrace", "traceId", "spanId"};
-    } else {
+    } else if ("legacy".equals(naming)) {
       return new String[]{"component", "env", "timestamp", "level", "logger", "message", "thread", "exceptionType", "exceptionMessage", "stackhash", "stacktrace", "trace_id", "span_id"};
+    } else {
+      // underscore naming is now default
+      return new String[]{"component", "env", "timestamp", "level", "logger_name", "message", "thread", "exception_type", "exception_message", "exception_stackhash", "exception_stacktrace", "trace_id", "span_id"};
     }
   }
 

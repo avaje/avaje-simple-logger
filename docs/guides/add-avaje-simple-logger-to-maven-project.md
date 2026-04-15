@@ -61,6 +61,9 @@ logger.defaultLogLevel=warn
 # Output format: json (default) or plain
 logger.format=json
 
+# JSON field naming convention: underscore (default), camel, or legacy
+logger.naming=underscore
+
 # Logger name formatting: full, short, or character limit (e.g., 100)
 logger.nameTargetLength=50
 
@@ -495,12 +498,61 @@ Timestamp format in logs.
 logger.timestampPattern=ISO_OFFSET_DATE_TIME
 ```
 
+#### logger.naming
+JSON field naming convention (when using `logger.format=json`).
+
+**Values:** `underscore` (default), `camel`, `legacy`
+
+```properties
+# Underscore format (default, recommended for new projects)
+# Fields: logger_name, exception_type, exception_message, exception_stacktrace
+logger.naming=underscore
+
+# CamelCase format
+# Fields: loggerName, exceptionType, exceptionMessage, exceptionStacktrace
+logger.naming=camel
+
+# Legacy format (for backwards compatibility)
+# Fields: logger, exceptionType, exceptionMessage, stacktrace
+logger.naming=legacy
+```
+
+Example JSON output with underscore (default):
+```json
+{
+  "logger_name":"io.avaje.config",
+  "exception_type":"java.lang.RuntimeException",
+  "exception_message":"Configuration error"
+}
+```
+
+Example JSON output with camelCase:
+```json
+{
+  "loggerName":"io.avaje.config",
+  "exceptionType":"java.lang.RuntimeException",
+  "exceptionMessage":"Configuration error"
+}
+```
+
+#### logger.propertyNames
+Override specific JSON property names.
+
+```properties
+# Override individual property names (comma and equals delimited)
+logger.propertyNames=logger_name=app_logger,env=application_env,timestamp=@timestamp
+
+# Override a single property
+logger.propertyNames=logger_name=loggerName
+```
+
 ### Complete Example Configuration
 
 ```properties
 # Basic configuration
 logger.defaultLogLevel=warn
 logger.format=json
+logger.naming=underscore
 logger.nameTargetLength=full
 logger.timezone=UTC
 
