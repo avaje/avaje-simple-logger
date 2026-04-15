@@ -10,6 +10,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static io.avaje.simplelogger.encoder.JsonEncoder.safeToString;
+
 final class PlainLogWriter implements LogWriter {
 
   private static final char SP = ' ';
@@ -54,7 +56,7 @@ final class PlainLogWriter implements LogWriter {
       }
       content.append(keyValuePair.key)
         .append('=')
-        .append(keyValuePair.value)
+        .append(safeToString(keyValuePair.value))
         .append(SP);
     }
     if (message != null) {

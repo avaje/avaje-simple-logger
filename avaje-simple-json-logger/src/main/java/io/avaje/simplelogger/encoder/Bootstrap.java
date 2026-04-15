@@ -63,7 +63,7 @@ public final class Bootstrap {
       .timestampPattern(timestampPattern)
       .timeZone(timeZone)
       .build();
-    return new JsonWriter(jsonEncoder, target);
+    return new JsonLogWriter(jsonEncoder, target);
   }
 
   private static String property(Properties properties, String key) {

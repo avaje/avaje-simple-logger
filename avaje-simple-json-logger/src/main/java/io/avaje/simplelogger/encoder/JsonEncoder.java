@@ -162,14 +162,6 @@ final class JsonEncoder {
       return 4;
     } else if (value instanceof CharSequence) {
       return ((CharSequence) value).length();
-    } else if (value instanceof Boolean) {
-      return ((Boolean) value) ? 4 : 5;
-    } else if (value instanceof Integer || value instanceof Long || value instanceof Double
-      || value instanceof Float || value instanceof Short || value instanceof Byte
-      || value instanceof BigDecimal || value instanceof BigInteger) {
-      return String.valueOf(value).length();
-    } else if (value instanceof byte[]) {
-      return ((byte[]) value).length;
     } else {
       return 16;
     }
@@ -204,7 +196,7 @@ final class JsonEncoder {
     }
   }
 
-  private static String safeToString(Object value) {
+  static String safeToString(Object value) {
     try {
       return String.valueOf(value);
     } catch (RuntimeException e) {

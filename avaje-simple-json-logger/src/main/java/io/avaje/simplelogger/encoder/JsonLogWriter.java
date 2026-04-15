@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-final class JsonWriter implements LogWriter {
+final class JsonLogWriter implements LogWriter {
 
   private final JsonEncoder encoder;
   private final PrintStream out;
 
-  JsonWriter(JsonEncoder encoder, PrintStream out) {
+  JsonLogWriter(JsonEncoder encoder, PrintStream out) {
     this.encoder = encoder;
     this.out = out;
   }
