@@ -7,11 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class EvalTest {
 
   @Test
-  void k8sComponent() {
-    assertEquals("my-component", Eval.k8sComponent("my-component-part0-part1"));
-  }
-
-  @Test
   void eval() {
     String expected = System.getProperty("user.home");
     assertEquals(expected, Eval.eval("${user.home:someDefault}"));

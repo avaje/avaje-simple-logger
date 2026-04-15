@@ -189,7 +189,6 @@ logger.propertyNames=logger=loggerName
 A `component` key value is added if:
 - There is a `logger.component` property set in `avaje-logger.properties`
 - There is a `COMPONENT` environment variable set
-- K8s is detected, it will be derived from the `HOSTNAME` environment variable
 
 This key value is expected to represent the application component that is the source of
 the logs.

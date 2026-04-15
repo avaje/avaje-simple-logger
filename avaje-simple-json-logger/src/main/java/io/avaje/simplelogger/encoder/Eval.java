@@ -11,29 +11,7 @@ final class Eval {
    * For K8s this derives the component name from the HOSTNAME.
    */
   static String defaultComponent() {
-    String component = System.getenv("COMPONENT");
-    if (component != null) {
-      return component;
-    }
-    if (System.getenv("KUBERNETES_PORT") != null) {
-      // in k8s we can default off the hostname
-      return k8sComponent(System.getenv("HOSTNAME"));
-    }
-    return null;
-  }
-
-  static String k8sComponent(String hostname) {
-    if (hostname == null) {
-      return null;
-    }
-    int p0 = hostname.lastIndexOf('-');
-    if (p0 > 1) {
-      int p1 = hostname.lastIndexOf('-', p0 - 1);
-      if (p1 > 0) {
-        return hostname.substring(0, p1);
-      }
-    }
-    return null;
+    return System.getenv("COMPONENT");
   }
 
   /**
