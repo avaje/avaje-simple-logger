@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
+
 final class JsonEncoder {
 
   private final JsonStream json;
@@ -81,7 +83,7 @@ final class JsonEncoder {
         writer.value(environment);
       }
       writer.name(2);
-      writer.value(formatter.format(OffsetDateTime.now()));
+      writer.value(formatter.format(OffsetDateTime.now().truncatedTo(MILLIS)));
       writer.name(3);
       writer.value(level.toString());
       writer.name(4);
