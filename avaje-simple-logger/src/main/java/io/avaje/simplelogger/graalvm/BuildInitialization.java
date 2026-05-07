@@ -30,7 +30,7 @@ public class BuildInitialization implements Feature {
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.StackHasher"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.ThrowableConverter"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.JsonEncoder"));
-    RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.JsonWriter"));
+    RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.JsonLogWriter"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.SimpleLogger"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.PlainLogWriter"));
     RuntimeClassInitialization.initializeAtBuildTime(access.findClassByName("io.avaje.simplelogger.encoder.NoopTraceContext"));
