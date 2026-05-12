@@ -171,7 +171,8 @@ Example JSON output:
 }
 ```
 
-For `logger.format=plain`, fluent key/value entries are rendered as `key=value` pairs before the message.
+For `logger.format=plain`, MDC entries and fluent key/value entries are rendered as `key=value` pairs before the message.
+MDC entries are written before the fluent key/value entries.
 
 ### JSON Field Naming Conventions
 

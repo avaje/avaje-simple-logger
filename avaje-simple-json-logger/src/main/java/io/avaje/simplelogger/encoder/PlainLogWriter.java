@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import org.slf4j.MDC;
 import org.slf4j.event.Level;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
@@ -9,6 +10,7 @@ import java.io.PrintStream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import static io.avaje.simplelogger.encoder.JsonEncoder.safeToString;
 
@@ -41,15 +43,38 @@ final class PlainLogWriter implements LogWriter {
 
     buf.append(loggerName).append(" - ");
     final String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
-    buf.append(withKeyValues(message, keyValuePairs));
+    buf.append(withContext(message, keyValuePairs));
     write(buf, t);
   }
 
-  private String withKeyValues(String message, List<KeyValuePair> keyValuePairs) {
-    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+  private String withContext(String message, List<KeyValuePair> keyValuePairs) {
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    if ((contextMap == null || contextMap.isEmpty()) && (keyValuePairs == null || keyValuePairs.isEmpty())) {
       return message;
     }
     final StringBuilder content = new StringBuilder(40 + (message == null ? 0 : message.length()));
+    appendMdc(content, contextMap);
+    appendKeyValues(content, keyValuePairs);
+    if (message != null) {
+      content.append(message);
+    }
+    return content.toString();
+  }
+
+  private static void appendMdc(StringBuilder content, Map<String, String> contextMap) {
+    if (contextMap == null || contextMap.isEmpty()) {
+      return;
+    }
+    contextMap.forEach((key, value) -> content.append(key)
+      .append('=')
+      .append(safeToString(value))
+      .append(SP));
+  }
+
+  private static void appendKeyValues(StringBuilder content, List<KeyValuePair> keyValuePairs) {
+    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+      return;
+    }
     for (KeyValuePair keyValuePair : keyValuePairs) {
       if (keyValuePair == null) {
         continue;
@@ -59,10 +84,6 @@ final class PlainLogWriter implements LogWriter {
         .append(safeToString(keyValuePair.value))
         .append(SP);
     }
-    if (message != null) {
-      content.append(message);
-    }
-    return content.toString();
   }
 
   private void write(StringBuilder buf, Throwable t) {

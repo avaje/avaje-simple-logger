@@ -21,6 +21,9 @@ import static org.slf4j.spi.LocationAwareLogger.INFO_INT;
 
 class FluentKeyValueTest {
 
+  private static final String TRACE_ID = "0af7651916cd43dd8448eb211c80319c";
+  private static final String SPAN_ID = "b7ad6b7169203331";
+
   @AfterEach
   void cleanup() {
     MDC.clear();
@@ -73,21 +76,40 @@ class FluentKeyValueTest {
   }
 
   @Test
+  void plainLogWriter_withoutStructuredContext_preservesMessage() {
+    String logLine = plainLogLine(null);
+
+    assertThat(logLine).endsWith("INFO test.Logger - hello world\n");
+  }
+
+  @Test
   void plainLogWriter_addKeyValue_prefixesMessage() {
-    ByteArrayOutputStream output = new ByteArrayOutputStream();
-    PlainLogWriter writer = new PlainLogWriter(new PrintStream(output), DateTimeFormatter.ISO_OFFSET_DATE_TIME, false);
+    String logLine = plainLogLine(List.of(new KeyValuePair("orderId", 42), new KeyValuePair("processed", true)));
 
-    writer.log(
-      "test.Logger",
-      Level.INFO,
-      "hello {}",
-      new Object[]{"world"},
-      null,
-      List.of(new KeyValuePair("orderId", 42), new KeyValuePair("processed", true))
-    );
-
-    String logLine = new String(output.toByteArray(), StandardCharsets.UTF_8);
     assertThat(logLine).contains("orderId=42 processed=true hello world");
+  }
+
+  @Test
+  void plainLogWriter_mdc_precedesFluentKeyValuesAndMessage() {
+    MDC.put("requestId", "req-42");
+
+    String logLine = plainLogLine(List.of(new KeyValuePair("orderId", 42), new KeyValuePair("processed", true)));
+
+    assertThat(logLine).contains("requestId=req-42 orderId=42 processed=true hello world");
+  }
+
+  @Test
+  void plainLogWriter_traceKeysFromMdc_areRenderedBeforeMessage() {
+    MDC.put("trace_id", TRACE_ID);
+    MDC.put("span_id", SPAN_ID);
+
+    String logLine = plainLogLine(null);
+
+    int messageIndex = logLine.indexOf("hello world");
+    assertThat(logLine).contains("trace_id=" + TRACE_ID);
+    assertThat(logLine).contains("span_id=" + SPAN_ID);
+    assertThat(logLine.indexOf("trace_id=" + TRACE_ID)).isLessThan(messageIndex);
+    assertThat(logLine.indexOf("span_id=" + SPAN_ID)).isLessThan(messageIndex);
   }
 
   private JsonEncoder buildEncoder() {
@@ -107,6 +129,22 @@ class FluentKeyValueTest {
       new ThrowableConverter(),
       new NoopTraceContext()
     );
+  }
+
+  private String plainLogLine(List<KeyValuePair> keyValuePairs) {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PlainLogWriter writer = new PlainLogWriter(new PrintStream(output), DateTimeFormatter.ISO_OFFSET_DATE_TIME, false);
+
+    writer.log(
+      "test.Logger",
+      Level.INFO,
+      "hello {}",
+      new Object[]{"world"},
+      null,
+      keyValuePairs
+    );
+
+    return output.toString(StandardCharsets.UTF_8);
   }
 
   private static final class CapturingLogWriter implements LogWriter {
