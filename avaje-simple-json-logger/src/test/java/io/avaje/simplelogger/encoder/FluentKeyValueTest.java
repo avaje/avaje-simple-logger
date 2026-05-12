@@ -99,17 +99,15 @@ class FluentKeyValueTest {
   }
 
   @Test
-  void plainLogWriter_traceKeysFromMdc_areRenderedBeforeMessage() {
+  void plainLogWriter_traceKeysFromMdc_areExcluded() {
     MDC.put("trace_id", TRACE_ID);
     MDC.put("span_id", SPAN_ID);
 
     String logLine = plainLogLine(null);
 
-    int messageIndex = logLine.indexOf("hello world");
-    assertThat(logLine).contains("trace_id=" + TRACE_ID);
-    assertThat(logLine).contains("span_id=" + SPAN_ID);
-    assertThat(logLine.indexOf("trace_id=" + TRACE_ID)).isLessThan(messageIndex);
-    assertThat(logLine.indexOf("span_id=" + SPAN_ID)).isLessThan(messageIndex);
+    assertThat(logLine).doesNotContain("trace_id=" + TRACE_ID);
+    assertThat(logLine).doesNotContain("span_id=" + SPAN_ID);
+    assertThat(logLine).endsWith("INFO test.Logger - hello world\n");
   }
 
   private JsonEncoder buildEncoder() {
@@ -133,7 +131,7 @@ class FluentKeyValueTest {
 
   private String plainLogLine(List<KeyValuePair> keyValuePairs) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    PlainLogWriter writer = new PlainLogWriter(new PrintStream(output), DateTimeFormatter.ISO_OFFSET_DATE_TIME, false);
+    PlainLogWriter writer = new PlainLogWriter(new PrintStream(output), DateTimeFormatter.ISO_OFFSET_DATE_TIME, false, new NoopTraceContext());
 
     writer.log(
       "test.Logger",

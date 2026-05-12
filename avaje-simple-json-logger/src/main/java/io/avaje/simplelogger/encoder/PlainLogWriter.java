@@ -21,11 +21,13 @@ final class PlainLogWriter implements LogWriter {
   private final PrintStream targetStream;
   private final DateTimeFormatter formatter;
   private final boolean showThreadName;
+  private final TraceContext traceContext;
 
-  PlainLogWriter(PrintStream targetStream, DateTimeFormatter formatter, boolean showThreadName) {
+  PlainLogWriter(PrintStream targetStream, DateTimeFormatter formatter, boolean showThreadName, TraceContext traceContext) {
     this.targetStream = targetStream;
     this.formatter = formatter;
     this.showThreadName = showThreadName;
+    this.traceContext = traceContext;
   }
 
   @Override
@@ -48,11 +50,14 @@ final class PlainLogWriter implements LogWriter {
   }
 
   private String withContext(String message, List<KeyValuePair> keyValuePairs) {
+    final String traceId = traceContext.traceId();
+    final String spanId = traceContext.spanId();
     Map<String, String> contextMap = MDC.getCopyOfContextMap();
-    if ((contextMap == null || contextMap.isEmpty()) && (keyValuePairs == null || keyValuePairs.isEmpty())) {
+    if (traceId == null && spanId == null && (contextMap == null || contextMap.isEmpty()) && (keyValuePairs == null || keyValuePairs.isEmpty())) {
       return message;
     }
     final StringBuilder content = new StringBuilder(40 + (message == null ? 0 : message.length()));
+    appendTraceContext(content, traceId, spanId);
     appendMdc(content, contextMap);
     appendKeyValues(content, keyValuePairs);
     if (message != null) {
@@ -61,14 +66,27 @@ final class PlainLogWriter implements LogWriter {
     return content.toString();
   }
 
+  private static void appendTraceContext(StringBuilder content, String traceId, String spanId) {
+    if (traceId != null) {
+      content.append("trace_id=").append(traceId).append(SP);
+    }
+    if (spanId != null) {
+      content.append("span_id=").append(spanId).append(SP);
+    }
+  }
+
   private static void appendMdc(StringBuilder content, Map<String, String> contextMap) {
     if (contextMap == null || contextMap.isEmpty()) {
       return;
     }
-    contextMap.forEach((key, value) -> content.append(key)
-      .append('=')
-      .append(safeToString(value))
-      .append(SP));
+    contextMap.forEach((key, value) -> {
+      if (!"trace_id".equals(key) && !"span_id".equals(key)) {
+        content.append(key)
+          .append('=')
+          .append(safeToString(value))
+          .append(SP);
+      }
+    });
   }
 
   private static void appendKeyValues(StringBuilder content, List<KeyValuePair> keyValuePairs) {
