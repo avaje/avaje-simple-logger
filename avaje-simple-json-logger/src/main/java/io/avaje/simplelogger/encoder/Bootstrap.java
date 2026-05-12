@@ -52,7 +52,7 @@ public final class Bootstrap {
     if ("plain".equalsIgnoreCase(writerType)) {
       final DateTimeFormatter formatter = TimeZoneUtils.plainFormatter(timestampPattern, timeZone.toZoneId());
       final boolean showThreadName = propertyShowThreadName(properties);
-      return new PlainLogWriter(target, formatter, showThreadName);
+      return new PlainLogWriter(target, formatter, showThreadName, TraceContextFactory.create());
     }
     var jsonEncoder = new JsonEncoderBuilder()
       .component(property(properties, "logger.component"))

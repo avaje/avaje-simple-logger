@@ -15,7 +15,7 @@ public class AcceptanceTest extends LoggerTestSuite {
   public Logger createLogger(ListAppendingOutputStream outputStream, Level level) {
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(null, TimeZone.getDefault().toZoneId());
     int logLevel = SimpleLoggerFactory.stringToLevel(level.toString());
-    return new SimpleLogger(new PlainLogWriter(System.out, formatter, true), "TestSuiteLogger", "TestSuiteLogger", logLevel);
+    return new SimpleLogger(new PlainLogWriter(System.out, formatter, true, new NoopTraceContext()), "TestSuiteLogger", "TestSuiteLogger", logLevel);
   }
 
   @Override

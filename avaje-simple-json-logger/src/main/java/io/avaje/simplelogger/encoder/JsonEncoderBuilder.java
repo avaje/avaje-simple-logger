@@ -111,18 +111,8 @@ final class JsonEncoderBuilder {
     String[] keys = basePropertyNames(naming);
     String[] mappedPropertyNames = toPropertyNames(keys, propertyNames);
     final DateTimeFormatter formatter = TimeZoneUtils.jsonFormatter(timestampPattern, timeZone.toZoneId());
-    final TraceContext traceContext = initTraceContext();
+    final TraceContext traceContext = TraceContextFactory.create();
     return new JsonEncoder(mappedPropertyNames, json, component, environment, stackHasher, formatter, includeStackHash, customFieldsMap, throwableConverter, traceContext);
-  }
-
-  private static TraceContext initTraceContext() {
-    try {
-      Class.forName("io.opentelemetry.api.trace.Span");
-      return (TraceContext) Class.forName("io.avaje.simplelogger.encoder.OtelTraceContext")
-        .getDeclaredConstructor().newInstance();
-    } catch (Exception e) {
-      return new NoopTraceContext();
-    }
   }
 
   static String[] basePropertyNames(String naming) {

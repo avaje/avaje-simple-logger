@@ -171,7 +171,10 @@ Example JSON output:
 }
 ```
 
-For `logger.format=plain`, fluent key/value entries are rendered as `key=value` pairs before the message.
+For `logger.format=plain`, active trace fields (`trace_id` and `span_id`) are rendered before the message using the same
+ `TraceContext` integration as JSON output. Remaining MDC entries (excluding `trace_id` and `span_id`) and fluent
+key/value entries are rendered as `key=value` pairs before the message, with MDC entries written before the fluent
+key/value entries.
 
 ### JSON Field Naming Conventions
 

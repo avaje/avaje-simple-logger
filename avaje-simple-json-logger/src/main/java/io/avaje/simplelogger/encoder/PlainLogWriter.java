@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import org.slf4j.MDC;
 import org.slf4j.event.Level;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
@@ -9,6 +10,7 @@ import java.io.PrintStream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import static io.avaje.simplelogger.encoder.JsonEncoder.safeToString;
 
@@ -19,11 +21,13 @@ final class PlainLogWriter implements LogWriter {
   private final PrintStream targetStream;
   private final DateTimeFormatter formatter;
   private final boolean showThreadName;
+  private final TraceContext traceContext;
 
-  PlainLogWriter(PrintStream targetStream, DateTimeFormatter formatter, boolean showThreadName) {
+  PlainLogWriter(PrintStream targetStream, DateTimeFormatter formatter, boolean showThreadName, TraceContext traceContext) {
     this.targetStream = targetStream;
     this.formatter = formatter;
     this.showThreadName = showThreadName;
+    this.traceContext = traceContext;
   }
 
   @Override
@@ -41,15 +45,54 @@ final class PlainLogWriter implements LogWriter {
 
     buf.append(loggerName).append(" - ");
     final String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
-    buf.append(withKeyValues(message, keyValuePairs));
+    buf.append(withContext(message, keyValuePairs));
     write(buf, t);
   }
 
-  private String withKeyValues(String message, List<KeyValuePair> keyValuePairs) {
-    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+  private String withContext(String message, List<KeyValuePair> keyValuePairs) {
+    final String traceId = traceContext.traceId();
+    final String spanId = traceContext.spanId();
+    Map<String, String> contextMap = MDC.getCopyOfContextMap();
+    if (traceId == null && spanId == null && (contextMap == null || contextMap.isEmpty()) && (keyValuePairs == null || keyValuePairs.isEmpty())) {
       return message;
     }
     final StringBuilder content = new StringBuilder(40 + (message == null ? 0 : message.length()));
+    appendTraceContext(content, traceId, spanId);
+    appendMdc(content, contextMap);
+    appendKeyValues(content, keyValuePairs);
+    if (message != null) {
+      content.append(message);
+    }
+    return content.toString();
+  }
+
+  private static void appendTraceContext(StringBuilder content, String traceId, String spanId) {
+    if (traceId != null) {
+      content.append("trace_id=").append(traceId).append(SP);
+    }
+    if (spanId != null) {
+      content.append("span_id=").append(spanId).append(SP);
+    }
+  }
+
+  private static void appendMdc(StringBuilder content, Map<String, String> contextMap) {
+    if (contextMap == null || contextMap.isEmpty()) {
+      return;
+    }
+    contextMap.forEach((key, value) -> {
+      if (!"trace_id".equals(key) && !"span_id".equals(key)) {
+        content.append(key)
+          .append('=')
+          .append(safeToString(value))
+          .append(SP);
+      }
+    });
+  }
+
+  private static void appendKeyValues(StringBuilder content, List<KeyValuePair> keyValuePairs) {
+    if (keyValuePairs == null || keyValuePairs.isEmpty()) {
+      return;
+    }
     for (KeyValuePair keyValuePair : keyValuePairs) {
       if (keyValuePair == null) {
         continue;
@@ -59,10 +102,6 @@ final class PlainLogWriter implements LogWriter {
         .append(safeToString(keyValuePair.value))
         .append(SP);
     }
-    if (message != null) {
-      content.append(message);
-    }
-    return content.toString();
   }
 
   private void write(StringBuilder buf, Throwable t) {
