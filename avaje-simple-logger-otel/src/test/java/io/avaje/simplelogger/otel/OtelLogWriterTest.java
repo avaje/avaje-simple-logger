@@ -17,6 +17,9 @@ import org.slf4j.MDC;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.event.Level;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 
@@ -28,6 +31,25 @@ class OtelLogWriterTest {
   @AfterEach
   void clearMdc() {
     MDC.clear();
+  }
+
+  @Test
+  void otelInternalLoggers_goToDiagnosticsNotOtel() {
+    InMemoryLogRecordExporter exporter = InMemoryLogRecordExporter.create();
+    SdkLoggerProvider loggerProvider = SdkLoggerProvider.builder()
+      .addLogRecordProcessor(SimpleLogRecordProcessor.create(exporter))
+      .build();
+    ByteArrayOutputStream diagnostics = new ByteArrayOutputStream();
+    OtelLogWriter writer = new OtelLogWriter(loggerProvider, new PrintStream(diagnostics));
+
+    writer.log("io.opentelemetry.exporter.internal.http.HttpExporter", "HttpExporter", Level.ERROR,
+      "Failed to export {}", new Object[]{"logs"}, new IllegalStateException("connection refused"), null);
+
+    assertThat(exporter.getFinishedLogRecordItems()).isEmpty();
+    String output = diagnostics.toString(StandardCharsets.UTF_8);
+    assertThat(output).startsWith("ERROR HttpExporter - Failed to export logs");
+    assertThat(output).contains("IllegalStateException: connection refused");
+    loggerProvider.close();
   }
 
   @Test

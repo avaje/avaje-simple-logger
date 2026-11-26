@@ -12,6 +12,7 @@ import org.slf4j.event.KeyValuePair;
 import org.slf4j.event.Level;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,16 +26,24 @@ final class OtelLogWriter implements LogWriter {
   private static final String THREAD_NAME = "thread.name";
 
   private final SdkLoggerProvider loggerProvider;
+  private final PrintStream diagnostics;
   private final Map<String, Logger> loggers = new ConcurrentHashMap<>();
 
   OtelLogWriter(SdkLoggerProvider loggerProvider) {
+    this(loggerProvider, System.err);
+  }
+
+  OtelLogWriter(SdkLoggerProvider loggerProvider, PrintStream diagnostics) {
     this.loggerProvider = loggerProvider;
+    this.diagnostics = diagnostics;
   }
 
   @Override
   public void log(String loggerName, String displayName, Level level, String messagePattern,
                   Object[] arguments, Throwable throwable, List<KeyValuePair> keyValuePairs) {
     if (isOtelInternal(loggerName)) {
+      // never route OTEL SDK/exporter logging back into OTEL (would recurse); write to stderr instead
+      writeDiagnostic(displayName, level, message(messagePattern, arguments), throwable);
       return;
     }
 
@@ -67,8 +76,17 @@ final class OtelLogWriter implements LogWriter {
   }
 
   private static boolean isOtelInternal(String loggerName) {
-    return loggerName.startsWith("io.opentelemetry.")
-      || loggerName.startsWith("io.avaje.simplelogger.otel.");
+    return loggerName.startsWith("io.opentelemetry.");
+  }
+
+  private void writeDiagnostic(String displayName, Level level, String message, Throwable throwable) {
+    synchronized (diagnostics) {
+      diagnostics.println(level + " " + displayName + " - " + message);
+      if (throwable != null) {
+        throwable.printStackTrace(diagnostics);
+      }
+      diagnostics.flush();
+    }
   }
 
   private static void addMdcAttributes(LogRecordBuilder builder, Map<String, String> contextMap) {

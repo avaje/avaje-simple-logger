@@ -50,7 +50,12 @@ public final class Bootstrap {
   private static LogWriter createWriter(Properties properties, String writerType) {
     String writerName = property(properties, "logger.writer");
     if (writerName != null && !writerName.isBlank() && !"console".equalsIgnoreCase(writerName)) {
-      return createExternalWriter(properties, writerName);
+      try {
+        return createExternalWriter(properties, writerName);
+      } catch (RuntimeException | ServiceConfigurationError e) {
+        // fall back to console rather than failing SLF4J initialisation
+        Reporter.error("Failed to create log writer '" + writerName + "', falling back to console", e);
+      }
     }
 
     return createConsoleWriter(properties, writerType);

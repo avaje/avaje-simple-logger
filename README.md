@@ -306,7 +306,9 @@ LoggerContext.get().putAll(nameLevels);
 ## OpenTelemetry log writer
 
 The optional `avaje-simple-logger-otel` module provides an OTLP/HTTP implementation of the `LogWriter` SPI.
-It replaces the console writer when selected, while the console writer remains the default.
+It replaces the console writer when selected, while the console writer remains the default. If the selected
+writer cannot be created (for example, no provider on the classpath or a missing endpoint), the error is
+reported via SLF4J's `Reporter` and the logger falls back to the console writer rather than failing startup.
 
 Add the module and select the writer in `avaje-logger.properties`:
 
