@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Configures the OTEL log writer using logger properties and standard OTEL environment variables.
@@ -25,6 +27,16 @@ public final class OtelLogWriterProvider implements LogWriterProvider {
   private static final String LOGS_ENDPOINT = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT";
   private static final String BASE_ENDPOINT = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
+  private final Function<String, String> env;
+
+  public OtelLogWriterProvider() {
+    this(System::getenv);
+  }
+
+  OtelLogWriterProvider(Function<String, String> env) {
+    this.env = env;
+  }
+
   @Override
   public String name() {
     return "otel";
@@ -32,25 +44,26 @@ public final class OtelLogWriterProvider implements LogWriterProvider {
 
   @Override
   public LogWriter create(Properties properties) {
-    String protocol = environment("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf");
+    String protocol = env("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", env("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"));
     if (!"http/protobuf".equalsIgnoreCase(protocol)) {
-      throw new IllegalStateException("The Avaje OTEL log writer supports only http/protobuf");
+      throw new IllegalStateException("The Avaje OTEL log writer supports only http/protobuf, got: " + protocol);
     }
 
     long exportTimeoutMillis = positiveLong(properties, "exportTimeoutMillis",
-      environmentLong("OTEL_BLRP_EXPORT_TIMEOUT", environmentLong("OTEL_EXPORTER_OTLP_TIMEOUT", 10000)));
+      envLong("OTEL_BLRP_EXPORT_TIMEOUT", envLong("OTEL_EXPORTER_OTLP_TIMEOUT", 10000)));
     long scheduleDelayMillis = positiveLong(properties, "scheduleDelayMillis",
-      environmentLong("OTEL_BLRP_SCHEDULE_DELAY", 1000));
+      envLong("OTEL_BLRP_SCHEDULE_DELAY", 1000));
     int maxQueueSize = positiveInt(properties, "maxQueueSize",
-      environmentInt("OTEL_BLRP_MAX_QUEUE_SIZE", 2048));
+      envInt("OTEL_BLRP_MAX_QUEUE_SIZE", 2048));
     int maxExportBatchSize = positiveInt(properties, "maxExportBatchSize",
-      environmentInt("OTEL_BLRP_MAX_EXPORT_BATCH_SIZE", 512));
+      envInt("OTEL_BLRP_MAX_EXPORT_BATCH_SIZE", 512));
 
+    Map<String, String> headers = headers();
     OtlpHttpLogRecordExporter exporter = OtlpHttpLogRecordExporter.builder()
       .setEndpoint(endpoint(properties))
       .setTimeout(Duration.ofMillis(exportTimeoutMillis))
       .setConnectTimeout(Duration.ofMillis(exportTimeoutMillis))
-      .setHeaders(OtelLogWriterProvider::headers)
+      .setHeaders(() -> headers)
       .build();
 
     BatchLogRecordProcessor processor = BatchLogRecordProcessor.builder(exporter)
@@ -68,17 +81,17 @@ public final class OtelLogWriterProvider implements LogWriterProvider {
     return new OtelLogWriter(loggerProvider);
   }
 
-  private static String endpoint(Properties properties) {
+  private String endpoint(Properties properties) {
     String endpoint = properties.getProperty(PROPERTY_PREFIX + "endpoint");
     if (endpoint != null && !endpoint.isBlank()) {
       return endpoint;
     }
-    endpoint = System.getenv(LOGS_ENDPOINT);
-    if (endpoint != null && !endpoint.isBlank()) {
+    endpoint = env(LOGS_ENDPOINT, null);
+    if (endpoint != null) {
       return endpoint;
     }
-    String baseEndpoint = System.getenv(BASE_ENDPOINT);
-    if (baseEndpoint == null || baseEndpoint.isBlank()) {
+    String baseEndpoint = env(BASE_ENDPOINT, null);
+    if (baseEndpoint == null) {
       throw new IllegalStateException("Set " + LOGS_ENDPOINT + ", " + BASE_ENDPOINT
         + ", or logger.writer.otel.endpoint when logger.writer=otel");
     }
@@ -89,48 +102,47 @@ public final class OtelLogWriterProvider implements LogWriterProvider {
     return baseEndpoint.substring(0, end) + "/v1/logs";
   }
 
-  private static Map<String, String> headers() {
-    String value = System.getenv("OTEL_EXPORTER_OTLP_LOGS_HEADERS");
-    if (value == null || value.isBlank()) {
-      value = System.getenv("OTEL_EXPORTER_OTLP_HEADERS");
-    }
-    if (value == null || value.isBlank()) {
+  private Map<String, String> headers() {
+    String value = env("OTEL_EXPORTER_OTLP_LOGS_HEADERS", env("OTEL_EXPORTER_OTLP_HEADERS", null));
+    if (value == null) {
       return Map.of();
     }
-
     Map<String, String> result = new HashMap<>();
-    for (String pair : value.split(",")) {
-      int separator = pair.indexOf('=');
-      if (separator <= 0) {
-        throw new IllegalStateException("Invalid OTEL exporter header: " + pair);
-      }
-      result.put(decode(pair.substring(0, separator).trim()), decode(pair.substring(separator + 1).trim()));
-    }
+    forEachPair(value, "header", result::put);
     return Map.copyOf(result);
   }
 
-  private static Resource resource() {
+  Resource resource() {
     ResourceBuilder builder = Resource.getDefault().toBuilder();
-    String resourceAttributes = System.getenv("OTEL_RESOURCE_ATTRIBUTES");
-    if (resourceAttributes != null && !resourceAttributes.isBlank()) {
-      for (String pair : resourceAttributes.split(",")) {
-        int separator = pair.indexOf('=');
-        if (separator <= 0) {
-          throw new IllegalStateException("Invalid OTEL resource attribute: " + pair);
-        }
-        builder.put(pair.substring(0, separator).trim(), pair.substring(separator + 1).trim());
-      }
+    String resourceAttributes = env("OTEL_RESOURCE_ATTRIBUTES", null);
+    if (resourceAttributes != null) {
+      forEachPair(resourceAttributes, "resource attribute", builder::put);
     }
-
-    String serviceName = System.getenv("OTEL_SERVICE_NAME");
-    if (serviceName != null && !serviceName.isBlank()) {
+    String serviceName = env("OTEL_SERVICE_NAME", null);
+    if (serviceName != null) {
       builder.put("service.name", serviceName);
     }
-    String environmentName = System.getenv("OTEL_DEPLOYMENT_ENVIRONMENT_NAME");
-    if (environmentName != null && !environmentName.isBlank()) {
+    // Non-standard convenience (not in the OTEL spec): equivalent to
+    // OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=<value>, applied last so it wins.
+    String environmentName = env("OTEL_DEPLOYMENT_ENVIRONMENT_NAME", null);
+    if (environmentName != null) {
       builder.put("deployment.environment.name", environmentName);
     }
     return builder.build();
+  }
+
+  /** Parse W3C Baggage-style {@code key=value,key2=value2} with percent-decoded keys and values. */
+  private static void forEachPair(String value, String kind, BiConsumer<String, String> consumer) {
+    for (String pair : value.split(",")) {
+      if (pair.isBlank()) {
+        continue;
+      }
+      int separator = pair.indexOf('=');
+      if (separator <= 0) {
+        throw new IllegalStateException("Invalid OTEL " + kind + ": " + pair);
+      }
+      consumer.accept(decode(pair.substring(0, separator).trim()), decode(pair.substring(separator + 1).trim()));
+    }
   }
 
   private static String decode(String value) {
@@ -161,18 +173,18 @@ public final class OtelLogWriterProvider implements LogWriterProvider {
     return parsed;
   }
 
-  private static String environment(String name, String defaultValue) {
-    String value = System.getenv(name);
+  private String env(String name, String defaultValue) {
+    String value = env.apply(name);
     return value == null || value.isBlank() ? defaultValue : value;
   }
 
-  private static long environmentLong(String name, long defaultValue) {
-    String value = System.getenv(name);
-    return value == null || value.isBlank() ? defaultValue : Long.parseLong(value);
+  private long envLong(String name, long defaultValue) {
+    String value = env(name, null);
+    return value == null ? defaultValue : Long.parseLong(value);
   }
 
-  private static int environmentInt(String name, int defaultValue) {
-    String value = System.getenv(name);
-    return value == null || value.isBlank() ? defaultValue : Integer.parseInt(value);
+  private int envInt(String name, int defaultValue) {
+    String value = env(name, null);
+    return value == null ? defaultValue : Integer.parseInt(value);
   }
 }

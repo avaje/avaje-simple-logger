@@ -95,7 +95,19 @@ public final class Bootstrap {
     if (selected == null) {
       throw new IllegalStateException("Log writer '" + writerName + "' is selected but no provider is available");
     }
-    return Objects.requireNonNull(selected.create(properties), "Log writer provider returned null: " + writerName);
+    return Objects.requireNonNull(selected.create(evaluated(properties)), "Log writer provider returned null: " + writerName);
+  }
+
+  /**
+   * Return a copy of the properties with {@code ${...}} expressions resolved, so external
+   * writer providers see the same placeholder support as the built-in console writer.
+   */
+  private static Properties evaluated(Properties properties) {
+    Properties resolved = new Properties();
+    for (String key : properties.stringPropertyNames()) {
+      resolved.setProperty(key, Eval.eval(properties.getProperty(key)));
+    }
+    return resolved;
   }
 
   private static String property(Properties properties, String key) {

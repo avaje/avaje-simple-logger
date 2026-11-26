@@ -10,6 +10,7 @@ import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +96,7 @@ class OtelLogWriterTest {
   void validatesPositiveExportTimeout() {
     Properties properties = new Properties();
     properties.put("logger.writer.otel.exportTimeoutMillis", "0");
-    OtelLogWriterProvider provider = new OtelLogWriterProvider();
+    OtelLogWriterProvider provider = provider(Map.of());
 
     assertThatThrownBy(() -> provider.create(properties))
       .isInstanceOf(IllegalArgumentException.class)
@@ -108,9 +110,43 @@ class OtelLogWriterTest {
     properties.put("logger.writer.otel.endpoint", "http://localhost:4318/v1/logs");
     properties.put("logger.writer.otel.exportTimeoutMillis", "500");
 
-    var writer = new OtelLogWriterProvider().create(properties);
+    var writer = provider(Map.of()).create(properties);
 
     assertThat(writer).isInstanceOf(OtelLogWriter.class);
     assertThat(writer.forceFlush(500)).isTrue();
+  }
+
+  @Test
+  void logsProtocolTakesPrecedenceOverGenericProtocol() {
+    Properties properties = new Properties();
+    properties.put("logger.writer.otel.endpoint", "http://localhost:4318/v1/logs");
+
+    // generic says grpc but the logs-specific override says http/protobuf -> accepted
+    assertThat(provider(Map.of(
+      "OTEL_EXPORTER_OTLP_PROTOCOL", "grpc",
+      "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf")).create(properties))
+      .isNotNull();
+
+    // logs-specific grpc is rejected even though generic is http/protobuf
+    assertThatThrownBy(() -> provider(Map.of(
+      "OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf",
+      "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "grpc")).create(properties))
+      .isInstanceOf(IllegalStateException.class)
+      .hasMessageContaining("got: grpc");
+  }
+
+  @Test
+  void resourceAttributesArePercentDecoded() {
+    Resource resource = provider(Map.of(
+      "OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=na%20prod,team=geo%2Fplatform",
+      "OTEL_SERVICE_NAME", "tile-scheduler")).resource();
+
+    assertThat(resource.getAttribute(AttributeKey.stringKey("deployment.environment.name"))).isEqualTo("na prod");
+    assertThat(resource.getAttribute(AttributeKey.stringKey("team"))).isEqualTo("geo/platform");
+    assertThat(resource.getAttribute(AttributeKey.stringKey("service.name"))).isEqualTo("tile-scheduler");
+  }
+
+  private static OtelLogWriterProvider provider(Map<String, String> env) {
+    return new OtelLogWriterProvider(env::get);
   }
 }

@@ -325,11 +325,33 @@ logger.writer=otel
 ```
 
 Configure either `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` (the base endpoint receives
-`/v1/logs`). Resource attributes and headers use `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_SERVICE_NAME`,
-`OTEL_EXPORTER_OTLP_LOGS_HEADERS`, and their standard OTEL equivalents. The writer supports `http/protobuf`.
-Batch settings can be supplied as `logger.writer.otel.exportTimeoutMillis`,
-`logger.writer.otel.scheduleDelayMillis`, `logger.writer.otel.maxQueueSize`, and
-`logger.writer.otel.maxExportBatchSize`.
+`/v1/logs`), or set `logger.writer.otel.endpoint` (supports `${...}` placeholders). The writer supports
+`http/protobuf` only (`OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` then `OTEL_EXPORTER_OTLP_PROTOCOL`).
+
+Standard OTEL environment variables honoured:
+
+| Variable | Purpose |
+|----------|---------|
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` / `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP endpoint |
+| `OTEL_EXPORTER_OTLP_LOGS_HEADERS` / `OTEL_EXPORTER_OTLP_HEADERS` | `key=value,...` headers (percent-decoded) |
+| `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` / `OTEL_EXPORTER_OTLP_PROTOCOL` | must be `http/protobuf` |
+| `OTEL_EXPORTER_OTLP_TIMEOUT`, `OTEL_BLRP_EXPORT_TIMEOUT` | export timeout (ms) |
+| `OTEL_BLRP_SCHEDULE_DELAY`, `OTEL_BLRP_MAX_QUEUE_SIZE`, `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE` | batch processor tuning |
+| `OTEL_SERVICE_NAME` | `service.name` resource attribute |
+| `OTEL_RESOURCE_ATTRIBUTES` | `key=value,...` resource attributes (percent-decoded) |
+
+Non-standard convenience variable:
+
+| Variable | Purpose |
+|----------|---------|
+| `OTEL_DEPLOYMENT_ENVIRONMENT_NAME` | Sets the `deployment.environment.name` resource attribute. This is **not** part of the OTEL specification; it exists so Lambda/K8s manifests can set the environment without composing `OTEL_RESOURCE_ATTRIBUTES`. Equivalent to `OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=<value>`, and overrides that key if both are set. |
+
+The batch settings can also be supplied as properties, which take precedence over the environment:
+`logger.writer.otel.exportTimeoutMillis`, `logger.writer.otel.scheduleDelayMillis`,
+`logger.writer.otel.maxQueueSize`, and `logger.writer.otel.maxExportBatchSize`.
+
+Log events from `io.opentelemetry.*` loggers (the SDK and exporter's own diagnostics) are written to `System.err`
+rather than exported, to avoid recursion and so exporter failures remain visible.
 
 For short-lived invocations, flush buffered log records before returning:
 
