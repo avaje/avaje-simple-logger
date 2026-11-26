@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import io.avaje.simplelogger.LogWriter;
 import org.slf4j.event.Level;
 import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.Reporter;
@@ -19,9 +20,10 @@ final class JsonLogWriter implements LogWriter {
   }
 
   @Override
-  public void log(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
+  public void log(String loggerName, String displayName, Level level, String messagePattern,
+                  Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
     try {
-      out.write(encoder.encode(loggerName, level, messagePattern, arguments, t, keyValuePairs));
+      out.write(encoder.encode(displayName, level, messagePattern, arguments, t, keyValuePairs));
     } catch (IOException e) {
       Reporter.error("Failed to write to log", e);
     }

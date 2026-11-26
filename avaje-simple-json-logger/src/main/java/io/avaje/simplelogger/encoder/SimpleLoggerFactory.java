@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import io.avaje.simplelogger.LogWriter;
 import io.avaje.simplelogger.LoggerContext;
 import org.slf4j.Logger;
 import org.slf4j.spi.LocationAwareLogger;
@@ -99,6 +100,11 @@ final class SimpleLoggerFactory implements LoggerContext {
   @Override
   public Logger getLogger(String name) {
     return loggerMap.computeIfAbsent(name, this::create);
+  }
+
+  @Override
+  public boolean forceFlush(long timeoutMillis) {
+    return logWriter.forceFlush(timeoutMillis);
   }
 
   /**

@@ -76,7 +76,7 @@ class PlainLogWriterTraceTest {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     PlainLogWriter writer = new PlainLogWriter(new PrintStream(output), DateTimeFormatter.ISO_OFFSET_DATE_TIME, false, traceContext);
 
-    writer.log("test.Logger", Level.INFO, message, null, null, null);
+    writer.log("test.Logger", "test.Logger", Level.INFO, message, null, null, null);
     return output.toString(StandardCharsets.UTF_8);
   }
 
