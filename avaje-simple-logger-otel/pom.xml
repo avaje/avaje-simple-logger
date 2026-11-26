@@ -35,7 +35,7 @@
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk</artifactId>
+      <artifactId>opentelemetry-sdk-common</artifactId>
       <version>${opentelemetry.version}</version>
     </dependency>
     <dependency>
@@ -47,6 +47,28 @@
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-exporter-otlp</artifactId>
       <version>${opentelemetry.version}</version>
+      <exclusions>
+        <!-- default sender pulls in OkHttp + Kotlin stdlib; use the JDK HttpClient sender instead -->
+        <exclusion>
+          <groupId>io.opentelemetry</groupId>
+          <artifactId>opentelemetry-exporter-sender-okhttp</artifactId>
+        </exclusion>
+        <!-- only the logs exporter is used; trace/metrics SDKs are referenced solely by autoconfigure SPI classes -->
+        <exclusion>
+          <groupId>io.opentelemetry</groupId>
+          <artifactId>opentelemetry-sdk-trace</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.opentelemetry</groupId>
+          <artifactId>opentelemetry-sdk-metrics</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-sender-jdk</artifactId>
+      <version>${opentelemetry.version}</version>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>

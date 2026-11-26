@@ -100,4 +100,17 @@ class OtelLogWriterTest {
       .isInstanceOf(IllegalArgumentException.class)
       .hasMessageContaining("logger.writer.otel.exportTimeoutMillis must be positive");
   }
+
+  @Test
+  void providerBuildsRealOtlpHttpWriter() {
+    // exercises OtlpHttpLogRecordExporter + JDK sender construction (no network: nothing queued to flush)
+    Properties properties = new Properties();
+    properties.put("logger.writer.otel.endpoint", "http://localhost:4318/v1/logs");
+    properties.put("logger.writer.otel.exportTimeoutMillis", "500");
+
+    var writer = new OtelLogWriterProvider().create(properties);
+
+    assertThat(writer).isInstanceOf(OtelLogWriter.class);
+    assertThat(writer.forceFlush(500)).isTrue();
+  }
 }
