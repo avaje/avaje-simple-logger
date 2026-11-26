@@ -4,7 +4,6 @@ import io.avaje.simplelogger.LogWriter;
 import io.opentelemetry.api.logs.LogRecordBuilder;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import org.slf4j.MDC;
@@ -15,7 +14,6 @@ import org.slf4j.helpers.MessageFormatter;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,7 +25,6 @@ final class OtelLogWriter implements LogWriter {
 
   private final SdkLoggerProvider loggerProvider;
   private final PrintStream diagnostics;
-  private final Map<String, Logger> loggers = new ConcurrentHashMap<>();
 
   OtelLogWriter(SdkLoggerProvider loggerProvider) {
     this(loggerProvider, System.err);
@@ -47,14 +44,15 @@ final class OtelLogWriter implements LogWriter {
       return;
     }
 
-    Logger logger = loggers.computeIfAbsent(loggerName, loggerProvider::get);
+    // SdkLoggerProvider.get() is already cached per name via its ComponentRegistry
+    Logger logger = loggerProvider.get(loggerName);
     LogRecordBuilder builder = logger.logRecordBuilder()
       .setTimestamp(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
       .setSeverity(severity(level))
       .setSeverityText(level.toString())
       .setBody(message(messagePattern, arguments))
-      .setContext(Context.current())
       .setAttribute(THREAD_NAME, Thread.currentThread().getName());
+    // trace/span correlation comes from Context.current() by default when emit() is called
 
     if (throwable != null) {
       builder.setException(throwable);

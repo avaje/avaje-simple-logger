@@ -324,6 +324,15 @@ Add the module and select the writer in `avaje-logger.properties`:
 logger.writer=otel
 ```
 
+`logger.writer` accepts `console` (the default) or the name of a `LogWriterProvider` on the classpath. For tests,
+override it back to the console writer in `src/test/resources/avaje-logger-test.properties` so no OTLP exporter
+is created and logs appear in test output as usual:
+
+```properties
+logger.writer=console
+logger.format=plain
+```
+
 Configure either `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` (the base endpoint receives
 `/v1/logs`), or set `logger.writer.otel.endpoint` (supports `${...}` placeholders). The writer supports
 `http/protobuf` only (`OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` then `OTEL_EXPORTER_OTLP_PROTOCOL`).
