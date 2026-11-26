@@ -16,11 +16,13 @@
 
   <properties>
     <slf4j.version>2.0.20</slf4j.version>
+    <opentelemetry.version>1.68.0</opentelemetry.version>
   </properties>
 
   <modules>
     <module>avaje-simple-json-logger</module>
     <module>avaje-simple-logger</module>
+    <module>avaje-simple-logger-otel</module>
   </modules>
 
 </project>

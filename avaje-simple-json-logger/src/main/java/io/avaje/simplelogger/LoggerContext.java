@@ -28,4 +28,13 @@ public interface LoggerContext extends ILoggerFactory {
    * @return Map of changed loggers and their new levels.
    */
   Map<String, String> putAll(Map<String, String> nameLevels);
+
+  /**
+   * Flush the active log writer within the supplied time limit.
+   *
+   * @return true when the flush completed successfully
+   */
+  default boolean forceFlush(long timeoutMillis) {
+    return true;
+  }
 }

@@ -1,5 +1,7 @@
 package io.avaje.simplelogger.encoder;
 
+import io.avaje.simplelogger.LogWriter;
+import io.avaje.simplelogger.LogWriterProvider;
 import io.avaje.simplelogger.LoggerContext;
 import org.slf4j.helpers.Reporter;
 
@@ -46,6 +48,20 @@ public final class Bootstrap {
   }
 
   private static LogWriter createWriter(Properties properties, String writerType) {
+    String writerName = property(properties, "logger.writer");
+    if (writerName != null && !writerName.isBlank() && !"console".equalsIgnoreCase(writerName)) {
+      try {
+        return createExternalWriter(properties, writerName);
+      } catch (RuntimeException | ServiceConfigurationError e) {
+        // fall back to console rather than failing SLF4J initialisation
+        Reporter.error("Failed to create log writer '" + writerName + "', falling back to console", e);
+      }
+    }
+
+    return createConsoleWriter(properties, writerType);
+  }
+
+  private static LogWriter createConsoleWriter(Properties properties, String writerType) {
     final PrintStream target = System.out;
     final TimeZone timeZone = TimeZoneUtils.parseTimeZone(property(properties, "logger.timezone"));
     final String timestampPattern = property(properties, "logger.timestampPattern");
@@ -64,6 +80,34 @@ public final class Bootstrap {
       .timeZone(timeZone)
       .build();
     return new JsonLogWriter(jsonEncoder, target);
+  }
+
+  private static LogWriter createExternalWriter(Properties properties, String writerName) {
+    LogWriterProvider selected = null;
+    for (LogWriterProvider provider : ServiceLoader.load(LogWriterProvider.class)) {
+      if (writerName.equalsIgnoreCase(provider.name())) {
+        if (selected != null) {
+          throw new IllegalStateException("Multiple log writer providers named '" + writerName + "'");
+        }
+        selected = provider;
+      }
+    }
+    if (selected == null) {
+      throw new IllegalStateException("Log writer '" + writerName + "' is selected but no provider is available");
+    }
+    return Objects.requireNonNull(selected.create(evaluated(properties)), "Log writer provider returned null: " + writerName);
+  }
+
+  /**
+   * Return a copy of the properties with {@code ${...}} expressions resolved, so external
+   * writer providers see the same placeholder support as the built-in console writer.
+   */
+  private static Properties evaluated(Properties properties) {
+    Properties resolved = new Properties();
+    for (String key : properties.stringPropertyNames()) {
+      resolved.setProperty(key, Eval.eval(properties.getProperty(key)));
+    }
+    return resolved;
   }
 
   private static String property(Properties properties, String key) {

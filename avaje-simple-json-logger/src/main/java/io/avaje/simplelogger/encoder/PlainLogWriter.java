@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import io.avaje.simplelogger.LogWriter;
 import org.slf4j.MDC;
 import org.slf4j.event.Level;
 import org.slf4j.event.KeyValuePair;
@@ -31,7 +32,8 @@ final class PlainLogWriter implements LogWriter {
   }
 
   @Override
-  public void log(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
+  public void log(String loggerName, String displayName, Level level, String messagePattern,
+                  Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
     StringBuilder buf = new StringBuilder(200);
     buf.append(formattedTimestamp());
     buf.append(SP);
@@ -43,7 +45,7 @@ final class PlainLogWriter implements LogWriter {
     buf.append(renderLevel(level.toInt()));
     buf.append(SP);
 
-    buf.append(loggerName).append(" - ");
+    buf.append(displayName).append(" - ");
     final String message = MessageFormatter.basicArrayFormat(messagePattern, arguments);
     buf.append(withContext(message, keyValuePairs));
     write(buf, t);

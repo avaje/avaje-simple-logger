@@ -1,6 +1,7 @@
 package io.avaje.simplelogger.encoder;
 
 import io.avaje.json.stream.JsonStream;
+import io.avaje.simplelogger.LogWriter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +42,8 @@ class FluentKeyValueTest {
       .log("hello {}", "world");
 
     assertThat(writer.level).isEqualTo(Level.INFO);
-    assertThat(writer.loggerName).isEqualTo("Name");
+    assertThat(writer.loggerName).isEqualTo("test.logger.Name");
+    assertThat(writer.displayName).isEqualTo("Name");
     assertThat(writer.messagePattern).isEqualTo("hello {}");
     assertThat(writer.arguments).containsExactly("world");
     assertThat(writer.throwable).isNull();
@@ -49,6 +52,16 @@ class FluentKeyValueTest {
     assertThat(writer.keyValuePairs.get(0).value).isEqualTo(42);
     assertThat(writer.keyValuePairs.get(1).key).isEqualTo("processed");
     assertThat(writer.keyValuePairs.get(1).value).isEqualTo(true);
+  }
+
+  @Test
+  void loggerContext_forceFlushDelegatesToWriter() {
+    CapturingLogWriter writer = new CapturingLogWriter();
+    writer.flushResult = false;
+    SimpleLoggerFactory factory = new SimpleLoggerFactory(writer, Abbreviator.create("full"), INFO_INT, Map.of());
+
+    assertThat(factory.forceFlush(750)).isFalse();
+    assertThat(writer.flushTimeout).isEqualTo(750);
   }
 
   @Test
@@ -135,6 +148,7 @@ class FluentKeyValueTest {
 
     writer.log(
       "test.Logger",
+      "test.Logger",
       Level.INFO,
       "hello {}",
       new Object[]{"world"},
@@ -147,20 +161,31 @@ class FluentKeyValueTest {
 
   private static final class CapturingLogWriter implements LogWriter {
     private String loggerName;
+    private String displayName;
     private Level level;
     private String messagePattern;
     private Object[] arguments;
     private Throwable throwable;
     private List<KeyValuePair> keyValuePairs;
+    private long flushTimeout;
+    private boolean flushResult = true;
 
     @Override
-    public void log(String loggerName, Level level, String messagePattern, Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
+    public void log(String loggerName, String displayName, Level level, String messagePattern,
+                    Object[] arguments, Throwable t, List<KeyValuePair> keyValuePairs) {
       this.loggerName = loggerName;
+      this.displayName = displayName;
       this.level = level;
       this.messagePattern = messagePattern;
       this.arguments = arguments == null ? null : arguments.clone();
       this.throwable = t;
       this.keyValuePairs = keyValuePairs == null ? null : new ArrayList<>(keyValuePairs);
+    }
+
+    @Override
+    public boolean forceFlush(long timeoutMillis) {
+      flushTimeout = timeoutMillis;
+      return flushResult;
     }
   }
 

@@ -302,3 +302,70 @@ nameLevels.put("com.foo.bar", "info");
 ...
 LoggerContext.get().putAll(nameLevels);
 ```
+
+## OpenTelemetry log writer
+
+The optional `avaje-simple-logger-otel` module provides an OTLP/HTTP implementation of the `LogWriter` SPI.
+It replaces the console writer when selected, while the console writer remains the default. If the selected
+writer cannot be created (for example, no provider on the classpath or a missing endpoint), the error is
+reported via SLF4J's `Reporter` and the logger falls back to the console writer rather than failing startup.
+
+Add the module and select the writer in `avaje-logger.properties`:
+
+```xml
+<dependency>
+  <groupId>io.avaje</groupId>
+  <artifactId>avaje-simple-logger-otel</artifactId>
+  <version>2.0</version>
+</dependency>
+```
+
+```properties
+logger.writer=otel
+```
+
+`logger.writer` accepts `console` (the default) or the name of a `LogWriterProvider` on the classpath. For tests,
+override it back to the console writer in `src/test/resources/avaje-logger-test.properties` so no OTLP exporter
+is created and logs appear in test output as usual:
+
+```properties
+logger.writer=console
+logger.format=plain
+```
+
+Configure either `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` (the base endpoint receives
+`/v1/logs`), or set `logger.writer.otel.endpoint` (supports `${...}` placeholders). The writer supports
+`http/protobuf` only (`OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` then `OTEL_EXPORTER_OTLP_PROTOCOL`).
+
+Standard OTEL environment variables honoured:
+
+| Variable | Purpose |
+|----------|---------|
+| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` / `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP endpoint |
+| `OTEL_EXPORTER_OTLP_LOGS_HEADERS` / `OTEL_EXPORTER_OTLP_HEADERS` | `key=value,...` headers (percent-decoded) |
+| `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` / `OTEL_EXPORTER_OTLP_PROTOCOL` | must be `http/protobuf` |
+| `OTEL_EXPORTER_OTLP_TIMEOUT`, `OTEL_BLRP_EXPORT_TIMEOUT` | export timeout (ms) |
+| `OTEL_BLRP_SCHEDULE_DELAY`, `OTEL_BLRP_MAX_QUEUE_SIZE`, `OTEL_BLRP_MAX_EXPORT_BATCH_SIZE` | batch processor tuning |
+| `OTEL_SERVICE_NAME` | `service.name` resource attribute |
+| `OTEL_RESOURCE_ATTRIBUTES` | `key=value,...` resource attributes (percent-decoded) |
+
+Non-standard convenience variable:
+
+| Variable | Purpose |
+|----------|---------|
+| `OTEL_DEPLOYMENT_ENVIRONMENT_NAME` | Sets the `deployment.environment.name` resource attribute. This is **not** part of the OTEL specification; it exists so Lambda/K8s manifests can set the environment without composing `OTEL_RESOURCE_ATTRIBUTES`. Equivalent to `OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=<value>`, and overrides that key if both are set. |
+
+The batch settings can also be supplied as properties, which take precedence over the environment:
+`logger.writer.otel.exportTimeoutMillis`, `logger.writer.otel.scheduleDelayMillis`,
+`logger.writer.otel.maxQueueSize`, and `logger.writer.otel.maxExportBatchSize`.
+
+Log events from `io.opentelemetry.*` loggers (the SDK and exporter's own diagnostics) are written to `System.err`
+rather than exported, to avoid recursion and so exporter failures remain visible.
+
+For short-lived invocations, flush buffered log records before returning:
+
+```java
+if (!LoggerContext.get().forceFlush(1_000)) {
+  // Handle an incomplete flush if delivery before return is required.
+}
+```

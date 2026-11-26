@@ -1,5 +1,6 @@
 package io.avaje.simplelogger.encoder;
 
+import io.avaje.simplelogger.LogWriter;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 import org.slf4j.event.LoggingEvent;
@@ -74,7 +75,7 @@ final class SimpleLogger extends LegacyAbstractLogger implements LoggingEventAwa
     if (eventLevel == null || !isEnabled(eventLevel.toInt())) {
       return;
     }
-    writer.log(shortName, eventLevel, event.getMessage(), event.getArgumentArray(), event.getThrowable(), event.getKeyValuePairs());
+    writer.log(name, shortName, eventLevel, event.getMessage(), event.getArgumentArray(), event.getThrowable(), event.getKeyValuePairs());
   }
 
   private boolean isEnabled(int eventLevel) {
@@ -82,7 +83,7 @@ final class SimpleLogger extends LegacyAbstractLogger implements LoggingEventAwa
   }
 
   private void logNormalized(Level level, String messagePattern, Object[] arguments, Throwable t) {
-    writer.log(shortName, level, messagePattern, arguments, t, null);
+    writer.log(name, shortName, level, messagePattern, arguments, t, null);
   }
 
 //    public void log(LoggingEvent event) {
